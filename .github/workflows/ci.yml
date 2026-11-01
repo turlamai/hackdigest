@@ -156,6 +156,17 @@ jobs:
           $out = Join-Path $env:RUNNER_TEMP 'native-smoke.stdout.log'
           $err = Join-Path $env:RUNNER_TEMP 'native-smoke.stderr.log'
           $app = (Resolve-Path 'dist/HackDigest.exe').Path
+          # Probe the real Windows process handle independently of
+          # System.Diagnostics.Process.WaitForExit/HasExited. This does not
+          # alter test success criteria: unexpected states remain failures.
+          Add-Type -TypeDefinition @'
+          using System;
+          using System.Runtime.InteropServices;
+          public static class HackDigestWin32WaitProbe {
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
+          }
+          '@
           $proc = Start-Process -FilePath $app -PassThru -WorkingDirectory (Resolve-Path 'dist').Path -RedirectStandardOutput $out -RedirectStandardError $err
           $waitStartUtc = [DateTime]::UtcNow
           try {
@@ -180,6 +191,18 @@ jobs:
                 # nonblocking wait; never treat HasExited alone as success.
                 $zeroWaitConfirmed = $proc.WaitForExit(0)
                 Write-Host "launcher zero-wait-confirmed=$zeroWaitConfirmed"
+                # Distinguish managed wait-state inconsistency from an
+                # unsignaled OS process handle (0=signaled, 0x102=timeout,
+                # 0xFFFFFFFF=WAIT_FAILED). Diagnostic only.
+                try {
+                  $nativeWait = [HackDigestWin32WaitProbe]::WaitForSingleObject($proc.Handle, [uint32]0)
+                  Write-Host "launcher win32-wait-result=0x$($nativeWait.ToString('X8'))"
+                  if ($nativeWait -eq [uint32]0xFFFFFFFF) {
+                    Write-Host "launcher win32-last-error=$([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
+                  }
+                } catch {
+                  Write-Host "launcher win32-wait-unavailable=$($_.Exception.Message)"
+                }
                 if ($zeroWaitConfirmed) {
                   $observedExit = $true
                   break
