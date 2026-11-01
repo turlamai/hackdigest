@@ -157,11 +157,24 @@ jobs:
           $err = Join-Path $env:RUNNER_TEMP 'native-smoke.stderr.log'
           $app = (Resolve-Path 'dist/HackDigest.exe').Path
           $proc = Start-Process -FilePath $app -PassThru -WorkingDirectory (Resolve-Path 'dist').Path -RedirectStandardOutput $out -RedirectStandardError $err
+          $waitStartUtc = [DateTime]::UtcNow
           try {
             if (-not $proc.WaitForExit(120000)) {
               # Keep a true nonzero failure while reporting whether the
               # packaged launcher, child process, or native threads remain.
               Write-Host '::group::Windows packaged process diagnostics'
+              # Distinguish a still-running launcher from one that exits at the
+              # 120s boundary: WaitForExit(false) alone cannot resolve this race.
+              Write-Host "launcher wait-start-utc=$($waitStartUtc.ToString('o')) wait-end-utc=$([DateTime]::UtcNow.ToString('o'))"
+              try {
+                $hasExitedAfterTimeout = $proc.HasExited
+                Write-Host "launcher has-exited-after-timeout=$hasExitedAfterTimeout"
+                if ($hasExitedAfterTimeout) {
+                  Write-Host "launcher exit-code=$($proc.ExitCode) exit-utc=$($proc.ExitTime.ToUniversalTime().ToString('o'))"
+                }
+              } catch {
+                Write-Host "launcher exit-state unavailable: $_"
+              }
               try {
                 $live = Get-Process -Id $proc.Id -ErrorAction SilentlyContinue
                 if ($live) {
