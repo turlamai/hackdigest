@@ -166,7 +166,16 @@ jobs:
                 break
               }
               if ($hasExitedSample) {
-                Write-Host '::error::WaitForExit(false) disagrees with HasExited; preserving failure'
+                # The process may exit between the five-second wait result
+                # and HasExited. Confirm the same handle is signaled with a
+                # nonblocking wait; never treat HasExited alone as success.
+                $zeroWaitConfirmed = $proc.WaitForExit(0)
+                Write-Host "launcher zero-wait-confirmed=$zeroWaitConfirmed"
+                if ($zeroWaitConfirmed) {
+                  $observedExit = $true
+                  break
+                }
+                Write-Host '::error::HasExited true without a signaled zero-wait; preserving failure'
                 break
               }
             }
