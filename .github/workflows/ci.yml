@@ -159,7 +159,27 @@ jobs:
           $proc = Start-Process -FilePath $app -PassThru -WorkingDirectory (Resolve-Path 'dist').Path -RedirectStandardOutput $out -RedirectStandardError $err
           $waitStartUtc = [DateTime]::UtcNow
           try {
-            if (-not $proc.WaitForExit(120000)) {
+            # The previous 120s wait returned false even though the launcher
+            # was gone and HasExited=true by the time failure was inspected.
+            # Sample the *same* process handle in bounded five-second waits
+            # to establish whether exit is observed earlier than the timeout.
+            # A false timed wait followed by HasExited=true is an inconsistent
+            # observation, NOT a pass; record it and keep the job red.
+            $observedExit = $false
+            for ($sample = 1; $sample -le 24; $sample++) {
+              $waitReturned = $proc.WaitForExit(5000)
+              $hasExitedSample = $proc.HasExited
+              Write-Host "launcher wait-sample=$sample utc=$([DateTime]::UtcNow.ToString('o')) wait-returned=$waitReturned has-exited=$hasExitedSample"
+              if ($waitReturned) {
+                $observedExit = $true
+                break
+              }
+              if ($hasExitedSample) {
+                Write-Host '::error::WaitForExit(false) disagrees with HasExited; preserving failure'
+                break
+              }
+            }
+            if (-not $observedExit) {
               # Keep a true nonzero failure while reporting whether the
               # packaged launcher, child process, or native threads remain.
               Write-Host '::group::Windows packaged process diagnostics'
