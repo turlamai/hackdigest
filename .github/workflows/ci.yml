@@ -197,7 +197,7 @@ jobs:
                 try {
                   $nativeWait = [HackDigestWin32WaitProbe]::WaitForSingleObject($proc.Handle, [uint32]0)
                   Write-Host "launcher win32-wait-result=0x$($nativeWait.ToString('X8'))"
-                  if ($nativeWait -eq [uint32]0xFFFFFFFF) {
+                  if ($nativeWait -eq [uint32]::MaxValue) {
                     Write-Host "launcher win32-last-error=$([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
                   }
                 } catch {
