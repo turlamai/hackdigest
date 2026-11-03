@@ -81,7 +81,7 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
 <p class="reader-en product-availability" lang="en">Development preview. All client features are free with your own model key; provider charges apply. Hosted translation is not open for purchase.</p><p class="reader-zh product-availability" lang="zh">开发预览。全部客户端功能可免费使用自己的模型密钥，模型费用另计。托管翻译尚未开放购买。</p>
             <p class="hero-sub" data-i18n="hero_sub">把全球最好的技术首页读成中文 —— 每条新闻、每篇原文、每个评论楼，按需翻译、按需摘要。</p>
             <div class="hero-cta">
-                <a class="btn btn-primary" href="https://github.com/turlamai/hackdigest/releases/latest/download/hackdigest-macos-arm64.dmg"
+                <a class="btn btn-primary" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="macos-arm64.dmg"
                     target="_blank" rel="noopener" data-i18n="hero_download">免费下载桌面版</a>
                 <a class="btn btn-ghost" href="https://github.com/turlamai/hackdigest" target="_blank"
                     rel="noopener">GitHub ↗</a>
@@ -154,15 +154,15 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
             <p data-i18n="dl_desc">所有安装包由 GitHub CI 从源码构建，并通过三平台启动冒烟验证。v0.3.0 起内置应用内更新：启动时拉取 Ed25519 签名清单，macOS / Windows 便携安装原地换装，Linux 下载归档后引导安装；安装器渠道（DMG / MSI / deb / rpm）直达发布页。</p>
         </div>
         <div class="dl-grid">
-            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest/download/hackdigest-windows-x64.msi">
+            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="windows-x64.msi">
                 <div class="dl-os">Windows</div>
                 <div class="dl-hint" data-i18n="dl_win">Windows 10/11 · MSI</div>
             </a>
-            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest/download/hackdigest-macos-arm64.dmg">
+            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="macos-arm64.dmg">
                 <div class="dl-os">macOS</div>
                 <div class="dl-hint" data-i18n="dl_mac">Apple Silicon / Intel · DMG / ZIP</div>
             </a>
-            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest/download/hackdigest-linux-x64.AppImage">
+            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="linux-x64.AppImage">
                 <div class="dl-os">Linux</div>
                 <div class="dl-hint" data-i18n="dl_linux">x64 / arm64 · tar.gz · deb · rpm · AppImage · zip</div>
             </a>
@@ -224,48 +224,61 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
         });
     </script>
     <script>
-        // Platform-aware direct downloads: the hero button and the matching
-        // dl-card point straight at the versionless alias for the visitor's
-        // OS (mac/linux arch refined via userAgentData); the card gets a
-        // .current outline. The hero label moves into the same i18n slots
-        // (ZH captured above + I18N.en) so language toggles keep it.
+        // Only exact tagged installer URLs are used; never depend on
+        // versionless binary aliases that the release no longer publishes.
         (function () {
-            var BASE = 'https://github.com/turlamai/hackdigest/releases/latest/download/';
+            var page = 'https://github.com/turlamai/hackdigest/releases/latest';
             var ua = navigator.userAgent;
             var os = /Windows/i.test(ua) ? 'win' : (/Mac|iPhone|iPad/i.test(ua) ? 'mac' : (/Linux|X11/i.test(ua) ? 'linux' : 'mac'));
             var arch = os === 'linux' && /aarch64|arm/i.test(ua) ? 'arm64' : (os === 'linux' ? 'x64' : 'arm64');
+            var release = null;
             var style = document.createElement('style');
             style.textContent = '.dl-card.current{border-color:var(--accent,#e06845);box-shadow:0 0 0 1px var(--accent,#e06845)}';
             document.head.appendChild(style);
-            var heroFile = { mac: 'hackdigest-macos-' + arch + '.dmg', win: 'hackdigest-windows-x64.msi', linux: 'hackdigest-linux-' + arch + '.AppImage' }[os];
-            var heroLabel = {
-                zh: { mac: '免费下载 macOS 版', win: '免费下载 Windows 版', linux: '免费下载 Linux 版' },
-                en: { mac: 'Download for macOS — free', win: 'Download for Windows — free', linux: 'Download for Linux — free' }
+            var labels = {
+                mac: {zh: '免费下载 macOS 版', en: 'Download for macOS — free'},
+                win: {zh: '免费下载 Windows 版', en: 'Download for Windows — free'},
+                linux: {zh: '免费下载 Linux 版', en: 'Download for Linux — free'}
             }[os];
-            ZH['hero_download'] = heroLabel.zh;
-            I18N.en['hero_download'] = heroLabel.en;
-            document.querySelector('a[data-i18n="hero_download"]').innerHTML = lang === 'en' ? I18N.en['hero_download'] : ZH['hero_download'];
-            document.querySelector('a[data-i18n="dl_all"]').innerHTML = lang === 'en' ? I18N.en['dl_all'] : ZH['dl_all'];
-            var cardSel = { mac: 'hackdigest-macos', win: 'hackdigest-windows', linux: 'hackdigest-linux' }[os];
-            document.querySelectorAll('.dl-grid a.dl-card').forEach(function (card) {
-                if (card.getAttribute('href').indexOf(cardSel) !== -1) {
-                    if (os !== 'win') {
-                        var f = os === 'mac' ? 'hackdigest-macos-' + arch + '.dmg' : 'hackdigest-linux-' + arch + '.AppImage';
-                        card.setAttribute('href', BASE + f);
-                    }
-                    card.classList.add('current');
-                }
-            });
+            ZH['hero_download'] = labels.zh;
+            I18N.en['hero_download'] = labels.en;
+            var hero = document.querySelector('a[data-i18n="hero_download"]');
+            if (hero) hero.textContent = lang === 'en' ? labels.en : labels.zh;
+            var all = document.querySelector('a[data-i18n="dl_all"]');
+            if (all) all.textContent = lang === 'en' ? I18N.en['dl_all'] : ZH['dl_all'];
+            var prefix = {mac: 'macos-', win: 'windows-', linux: 'linux-'}[os];
+            var current = Array.from(document.querySelectorAll('.dl-grid a.dl-card'))
+                .find(function (a) { return (a.dataset.releaseSuffix || '').startsWith(prefix); });
+            if (current) current.classList.add('current');
+            function resolve() {
+                var suffix = {mac: 'macos-' + arch + '.dmg', win: 'windows-x64.msi',
+                              linux: 'linux-' + arch + '.AppImage'}[os];
+                if (hero) hero.dataset.releaseSuffix = suffix;
+                if (current) current.dataset.releaseSuffix = suffix;
+                document.querySelectorAll('a[data-release-suffix]').forEach(function (a) {
+                    a.href = page;
+                    if (!release || release.draft || release.prerelease ||
+                        !/^v[0-9]+\\.[0-9]+\\.[0-9]+$/.test(release.tag_name)) return;
+                    var name = 'hackdigest-' + release.tag_name.slice(1) + '-' + a.dataset.releaseSuffix;
+                    var exact = 'https://github.com/turlamai/hackdigest/releases/download/' + release.tag_name + '/' + name;
+                    if ((release.assets || []).some(function (x) {
+                        return x.name === name && x.size > 0 && x.browser_download_url === exact;
+                    })) a.href = exact;
+                });
+            }
+            resolve();
             if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
                 navigator.userAgentData.getHighEntropyValues(['architecture', 'platform']).then(function (h) {
-                    if (!h || /Windows/i.test(h.platform || '')) return; // windows ships x64-only
+                    if (!h || /Windows/i.test(h.platform || '')) return;
                     var a = h.architecture === 'arm' ? 'arm64' : (h.architecture === 'x86' ? 'x64' : null);
-                    if (!a || a === arch) return;
-                    var f = os === 'mac' ? 'hackdigest-macos-' + a + '.dmg' : 'hackdigest-linux-' + a + '.AppImage';
-                    var u = BASE + f;
-                    document.querySelectorAll('a[href^="' + BASE + '"]').forEach(function (x) { x.setAttribute('href', u); });
+                    if (a && a !== arch) { arch = a; resolve(); }
                 }).catch(function () {});
             }
+            fetch('https://api.github.com/repos/turlamai/hackdigest/releases/latest',
+                  {headers: {'Accept': 'application/vnd.github+json'}})
+                .then(function (r) { if (!r.ok) throw new Error('release lookup'); return r.json(); })
+                .then(function (data) { release = data; resolve(); })
+                .catch(function () { /* Releases page is the fallback. */ });
         })();
     </script>
 </body>
