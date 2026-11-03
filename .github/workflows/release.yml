@@ -947,54 +947,58 @@ jobs:
             echo "::error::Signed update manifest missing; refusing to publish"
             exit 1
           }
-      - name: Ensure SHA256SUMS
+      - name: Verify all versioned release payloads and stage public assets
         run: |
-          cd dist
-          [ -f SHA256SUMS ] || {
-            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS
-          }
-          shasum -a 256 --check SHA256SUMS
-      - name: Publish release (notes = CHANGELOG section for this version)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          awk -v header="## ${VERSION}" '
-            index($0, header) == 1 {on=1; next}
-            on && /^## / {exit}
-            on {print}
-          ' CHANGELOG.md > /tmp/notes.md
-          test -s /tmp/notes.md || { echo "::error::empty release notes — CHANGELOG.md has no '## ${VERSION}' section"; exit 1; }
-          if gh release view "${{ github.ref_name }}" -R turlamai/hackdigest >/dev/null 2>&1; then
-            gh release upload "${{ github.ref_name }}" dist/* --clobber -R turlamai/hackdigest
-          else
-            gh release create "${{ github.ref_name }}" dist/* \
-              -R turlamai/hackdigest \
-              --title "HackDigest ${{ github.ref_name }}" \
-              --notes-file /tmp/notes.md
-          fi
-      - name: Attest build provenance
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-path: dist/*
-      - name: Stable alias copies (versionless direct-download links)
+          set -euo pipefail
+          VERSION="$(printf '%s' "$GITHUB_REF_NAME" | cut -c2-)"
+          mkdir -p public
+          for suffix in \
+            macos-arm64.dmg macos-arm64.zip macos-x64.dmg macos-x64.zip \
+            windows-x64.msi windows-x64.zip \
+            linux-arm64.tar.gz linux-arm64.zip linux-x64.tar.gz linux-x64.zip \
+            linux-arm64.deb linux-x64.deb \
+            linux-arm64.AppImage linux-x64.AppImage; do
+            name="hackdigest-$VERSION-$suffix"
+            test -s "dist/$name" || { echo "::error::Missing $name"; exit 1; }
+            cp "dist/$name" public/
+          done
+          for arch in aarch64 x86_64; do
+            rpm="$(find dist -maxdepth 1 -type f -name "hackdigest-$VERSION-*-linux-$arch.rpm" -print -quit)"
+            test -s "$rpm" || { echo "::error::Missing RPM $arch"; exit 1; }
+            cp "$rpm" public/
+          done
+          test -s dist/update-manifest.json
+          cp dist/update-manifest.json public/
+          (cd public && sha256sum hackdigest-* | LC_ALL=C sort -k2 > SHA256SUMS && sha256sum -c SHA256SUMS)
+          test "$(grep -c '^' public/SHA256SUMS)" -eq 16
+      - name: Publish release (notes from CHANGELOG)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          # Family rule: download buttons point at
-          # releases/latest/download/<alias>, so every release also ships
-          # versionless copies of the primary installers (hackdigest also
-          # aliases the Windows portable zip). Deliberately after the
-          # provenance attestation so dist/* there stays versioned-only.
-          mkdir -p stable-alias
-          cp "dist/hackdigest-${VERSION}-macos-arm64.dmg" stable-alias/hackdigest-macos-arm64.dmg
-          cp "dist/hackdigest-${VERSION}-macos-x64.dmg" stable-alias/hackdigest-macos-x64.dmg
-          cp "dist/hackdigest-${VERSION}-windows-x64.msi" stable-alias/hackdigest-windows-x64.msi
-          cp "dist/hackdigest-${VERSION}-windows-x64.zip" stable-alias/hackdigest-windows-x64.zip
-          cp "dist/hackdigest-${VERSION}-linux-x64.deb" stable-alias/hackdigest-linux-x64.deb
-          cp "dist/hackdigest-${VERSION}-linux-arm64.deb" stable-alias/hackdigest-linux-arm64.deb
-          cp "dist/hackdigest-${VERSION}-linux-x64.AppImage" stable-alias/hackdigest-linux-x64.AppImage
-          cp "dist/hackdigest-${VERSION}-linux-arm64.AppImage" stable-alias/hackdigest-linux-arm64.AppImage
-          gh release upload "${{ github.ref_name }}" stable-alias/* --clobber -R turlamai/hackdigest
+          VERSION="$(printf '%s' "$GITHUB_REF_NAME" | cut -c2-)"
+          awk -v header="## $VERSION" '
+            index($0, header) == 1 {on=1; next}
+            on && /^## / {exit}
+            on {print}
+          ' CHANGELOG.md > /tmp/notes.md
+          test -s /tmp/notes.md || { echo "::error::Missing CHANGELOG section $VERSION"; exit 1; }
+          if gh release view "$GITHUB_REF_NAME" -R turlamai/hackdigest >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" -R turlamai/hackdigest --notes-file /tmp/notes.md
+            gh release upload "$GITHUB_REF_NAME" public/* --clobber -R turlamai/hackdigest
+          else
+            gh release create "$GITHUB_REF_NAME" public/* \
+              -R turlamai/hackdigest \
+              --title "HackDigest $VERSION" \
+              --notes-file /tmp/notes.md
+          fi
+          gh release view "$GITHUB_REF_NAME" -R turlamai/hackdigest --json assets --jq '.assets[].name' |
+            while IFS= read -r name; do
+              if [ ! -f "public/$name" ]; then
+                gh release delete-asset "$GITHUB_REF_NAME" "$name" --yes -R turlamai/hackdigest
+              fi
+            done
+      - name: Attest public build provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: public/*
