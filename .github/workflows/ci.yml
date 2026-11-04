@@ -156,96 +156,41 @@ jobs:
           $out = Join-Path $env:RUNNER_TEMP 'native-smoke.stdout.log'
           $err = Join-Path $env:RUNNER_TEMP 'native-smoke.stderr.log'
           $app = (Resolve-Path 'dist/HackDigest.exe').Path
-          # Probe the real Windows process handle independently of
-          # System.Diagnostics.Process.WaitForExit/HasExited. This does not
-          # alter test success criteria: unexpected states remain failures.
-          Add-Type -TypeDefinition @'
-          using System;
-          using System.Runtime.InteropServices;
-          public static class HackDigestWin32WaitProbe {
-            [DllImport("kernel32.dll", SetLastError = true)]
-            public static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
-          }
-          '@
           $proc = Start-Process -FilePath $app -PassThru -WorkingDirectory (Resolve-Path 'dist').Path -RedirectStandardOutput $out -RedirectStandardError $err
           $waitStartUtc = [DateTime]::UtcNow
+          $deadline = $waitStartUtc.AddSeconds(120)
           try {
-            # The previous 120s wait returned false even though the launcher
-            # was gone and HasExited=true by the time failure was inspected.
-            # Sample the *same* process handle in bounded five-second waits
-            # to establish whether exit is observed earlier than the timeout.
-            # A false timed wait followed by HasExited=true is an inconsistent
-            # observation, NOT a pass; record it and keep the job red.
-            $observedExit = $false
-            for ($sample = 1; $sample -le 24; $sample++) {
-              $waitReturned = $proc.WaitForExit(5000)
-              $hasExitedSample = $proc.HasExited
-              Write-Host "launcher wait-sample=$sample utc=$([DateTime]::UtcNow.ToString('o')) wait-returned=$waitReturned has-exited=$hasExitedSample"
-              if ($waitReturned) {
-                $observedExit = $true
-                break
-              }
-              if ($hasExitedSample) {
-                # The process may exit between the five-second wait result
-                # and HasExited. Confirm the same handle is signaled with a
-                # nonblocking wait; never treat HasExited alone as success.
-                $zeroWaitConfirmed = $proc.WaitForExit(0)
-                Write-Host "launcher zero-wait-confirmed=$zeroWaitConfirmed"
-                # Distinguish managed wait-state inconsistency from an
-                # unsignaled OS process handle (0=signaled, 0x102=timeout,
-                # 0xFFFFFFFF=WAIT_FAILED). Diagnostic only.
-                try {
-                  $nativeWait = [HackDigestWin32WaitProbe]::WaitForSingleObject($proc.Handle, [uint32]0)
-                  Write-Host "launcher win32-wait-result=0x$($nativeWait.ToString('X8'))"
-                  if ($nativeWait -eq [uint32]::MaxValue) {
-                    Write-Host "launcher win32-last-error=$([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
-                  }
-                } catch {
-                  Write-Host "launcher win32-wait-unavailable=$($_.Exception.Message)"
-                }
-                if ($zeroWaitConfirmed) {
-                  $observedExit = $true
-                  break
-                }
-                Write-Host '::error::HasExited true without a signaled zero-wait; preserving failure'
-                break
-              }
+            # Poll the OS process table instead of Process.WaitForExit: on
+            # this runner the managed wait reported a false timeout (and a
+            # stale 1601 exit time) while HasExited was true with exit code 0.
+            # A launcher that is gone from the table has exited; the exit code
+            # below is still the gate.
+            while ((Get-Process -Id $proc.Id -ErrorAction SilentlyContinue) -and
+                   ([DateTime]::UtcNow -lt $deadline)) {
+              if ($proc.HasExited) { break }
+              Start-Sleep -Milliseconds 250
             }
-            if (-not $observedExit) {
-              # Keep a true nonzero failure while reporting whether the
-              # packaged launcher, child process, or native threads remain.
+            $live = Get-Process -Id $proc.Id -ErrorAction SilentlyContinue
+            if ($live) {
               Write-Host '::group::Windows packaged process diagnostics'
-              # Distinguish a still-running launcher from one that exits at the
-              # 120s boundary: WaitForExit(false) alone cannot resolve this race.
+              Write-Host "launcher pid=$($live.Id) name=$($live.ProcessName) threads=$($live.Threads.Count) handles=$($live.HandleCount)"
+              $live.Threads | Select-Object -First 20 Id,ThreadState,WaitReason | Format-Table | Out-String | Write-Host
+              Get-CimInstance Win32_Process |
+                Where-Object { $_.ParentProcessId -eq $proc.Id } |
+                Select-Object ProcessId,ParentProcessId,Name |
+                Format-Table | Out-String | Write-Host
               Write-Host "launcher wait-start-utc=$($waitStartUtc.ToString('o')) wait-end-utc=$([DateTime]::UtcNow.ToString('o'))"
-              try {
-                $hasExitedAfterTimeout = $proc.HasExited
-                Write-Host "launcher has-exited-after-timeout=$hasExitedAfterTimeout"
-                if ($hasExitedAfterTimeout) {
-                  Write-Host "launcher exit-code=$($proc.ExitCode) exit-utc=$($proc.ExitTime.ToUniversalTime().ToString('o'))"
-                }
-              } catch {
-                Write-Host "launcher exit-state unavailable: $_"
-              }
-              try {
-                $live = Get-Process -Id $proc.Id -ErrorAction SilentlyContinue
-                if ($live) {
-                  Write-Host "launcher pid=$($live.Id) name=$($live.ProcessName) threads=$($live.Threads.Count) handles=$($live.HandleCount)"
-                  $live.Threads | Select-Object -First 20 Id,ThreadState,WaitReason | Format-Table | Out-String | Write-Host
-                } else {
-                  Write-Host "launcher pid=$($proc.Id) exited before process inspection"
-                }
-                Get-CimInstance Win32_Process |
-                  Where-Object { $_.ParentProcessId -eq $proc.Id } |
-                  Select-Object ProcessId,ParentProcessId,Name |
-                  Format-Table | Out-String | Write-Host
-              } catch {
-                Write-Host "process diagnostics unavailable: $_"
-              }
               Write-Host '::endgroup::'
               Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
               throw 'packaged native selftest timed out'
             }
+            for ($i = 0; $i -lt 20 -and -not $proc.HasExited; $i++) {
+              Start-Sleep -Milliseconds 100
+            }
+            if (-not $proc.HasExited) {
+              throw 'launcher left the process table but its exit state is unavailable'
+            }
+            Write-Host "launcher exited code=$($proc.ExitCode) wait-start-utc=$($waitStartUtc.ToString('o')) wait-end-utc=$([DateTime]::UtcNow.ToString('o'))"
             if ($proc.ExitCode -ne 0) { throw "packaged native selftest failed ($($proc.ExitCode))" }
           } finally {
             if (Test-Path $out) { Get-Content $out }
