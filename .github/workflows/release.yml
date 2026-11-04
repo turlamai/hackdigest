@@ -92,7 +92,7 @@ jobs:
           distribution: full
 
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#2be8c15738d5144d4ed40041b1f913ed6b6b6d07
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#bb98ae60ad9e2e8a59bf61ee1144141f3de96f35
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -277,7 +277,7 @@ jobs:
           distribution: full
 
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#2be8c15738d5144d4ed40041b1f913ed6b6b6d07
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#bb98ae60ad9e2e8a59bf61ee1144141f3de96f35
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -718,7 +718,7 @@ jobs:
           distribution: full
 
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#2be8c15738d5144d4ed40041b1f913ed6b6b6d07
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#bb98ae60ad9e2e8a59bf61ee1144141f3de96f35
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -914,7 +914,7 @@ jobs:
 
       - name: Install glaze and crypto
         run: |
-          raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#2be8c15738d5144d4ed40041b1f913ed6b6b6d07 crypto
+          raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#bb98ae60ad9e2e8a59bf61ee1144141f3de96f35 crypto
 
       - uses: actions/download-artifact@v4
         with:
