@@ -35,6 +35,7 @@
          "db.rkt"
          "llm.rkt"
          "migrate.rkt"
+         "native-smoke.rkt"
          "platform.rkt"
          "settings-rpc.rkt"
          "translate.rkt"
@@ -385,6 +386,14 @@
      (install-downloaded!))])
 
 (module+ main
+  ;; Never mutate a developer's real database while running synthetic
+  ;; packaged-native checks. CI and release smoke both pass an isolated dir.
+  (define selftest? (equal? (getenv "HACKDIGEST_SELFTEST") "1"))
+  (when selftest?
+    (let ([data-dir (getenv "HACKDIGEST_DATA_DIR")])
+      (unless (and data-dir (not (string=? data-dir "")))
+        (raise-user-error 'hackdigest-selftest "set HACKDIGEST_DATA_DIR to an isolated test directory"))))
+
   (unless (single-instance? "hackdigest")
     (displayln "[hackdigest] another instance is running; exiting")
     (exit 1))
@@ -413,11 +422,38 @@
   ;; process exits 0. A missing WebView backend, a page that never
   ;; commits, or an empty capture exits non-zero; there is no browser
   ;; fallback to mask a broken packaged bridge.
-  (define selftest? (equal? (getenv "HACKDIGEST_SELFTEST") "1"))
+  ;; Selftest must fail closed: an explicit HTTP override is never native
+  ;; evidence, even if the app opens and captures the same frontend.
+  (when (and selftest? (not (eq? transport 'native)))
+    (raise-user-error 'hackdigest-selftest "native transport required"))
+
+  ;; A packaged build's actual frontend resources are copied unchanged to
+  ;; an isolated temporary directory; only that selftest copy receives the
+  ;; synthetic GLZ1 page. Normal installs never serve this page or its
+  ;; synthetic routes. The checked-in application schema stays unchanged.
+  (define smoke-root
+    (and selftest? (make-temporary-file "hackdigest-native-smoke-~a" 'directory)))
+  (define serving-dir
+    (if selftest?
+        (let ([dir (build-path smoke-root "frontend")])
+          (copy-directory/files frontend-dist dir)
+          (call-with-output-file (build-path dir "__glaze-smoke.html")
+            (lambda (out) (display native-smoke-html out))
+            #:exists 'truncate/replace)
+          dir)
+        frontend-dist))
+
   (define selftest-passed? (box #f))
+  (define selftest-start-ms (and selftest? (current-inexact-milliseconds)))
+  (define (smoke-mark phase)
+    (when selftest?
+      (eprintf "[selftest] phase=~a elapsed-ms=~a\n"
+               phase (- (current-inexact-milliseconds) selftest-start-ms))
+      (flush-output (current-error-port))))
+  (smoke-mark 'before-run-app)
   (run-app
-   #:public-dir frontend-dist
-   #:api api
+   #:public-dir serving-dir
+   #:api (if selftest? (append api (native-smoke-routes)) api)
    #:events bus
    #:transport transport
    #:api-token (or (getenv "GLAZE_API_TOKEN") #t)
@@ -431,17 +467,24 @@
        (lambda (wv url)
          (define deadline (+ (current-inexact-milliseconds) 20000))
          (define loaded?
-           (if (webview? wv)
-               (let loop ()
-                 (cond
-                   [(equal? (webview-title wv) "HackDigest") #t]
-                   [(> (current-inexact-milliseconds) deadline) #f]
-                   [else (sleep 0.25) (loop)]))
-               #f))
-         ;; Capture proves composited pixels, not just a committed title;
-         ;; macOS can answer the title query before the first remote layer
-         ;; composites, so retry briefly (same policy as the framework's
-         ;; agent-verify example).
+           (and (webview? wv)
+                (let loop ()
+                  (cond
+                    [(equal? (webview-title wv) "HackDigest") #t]
+                    [(> (current-inexact-milliseconds) deadline) #f]
+                    [else (sleep 0.25) (loop)]))))
+         (smoke-mark 'react-title-loaded)
+         ;; A real native page must use the controlled WebView origin, never
+         ;; loopback HTTP. WebView2 maps the custom scheme to glaze.localhost.
+         (define native-origin
+           (if (eq? (system-type 'os) 'windows)
+               "http://glaze.localhost/"
+               "glaze://app/"))
+         (define observed-url (and (webview? wv) (webview-url wv)))
+         (define origin-ok?
+           (and (string? observed-url)
+                (string-prefix? observed-url native-origin)))
+         ;; A title may commit before the first frame has composited.
          (define shot
            (and loaded?
                 (let retry ([limit (+ (current-inexact-milliseconds) 5000)])
@@ -450,13 +493,55 @@
                     [(and s (>= (file-size s) 5000)) s]
                     [(> (current-inexact-milliseconds) limit) s]
                     [else (sleep 0.3) (retry limit)]))))
-         (set-box! selftest-passed? (and loaded? shot))
-         (eprintf "[selftest] transport=~a url=~a loaded=~a capture=~a\n"
-                  transport url loaded? (and shot #t))
-         (when (webview? wv) (webview-close wv)))
-       (lambda (wv url) (void))))
+         (define capture-ok? (and shot (>= (file-size shot) 5000)))
+         (smoke-mark 'capture-checked)
+         (define smoke-title #f)
+         (define bridge-ok?
+           (and loaded? origin-ok? capture-ok?
+                (begin
+                  (smoke-mark 'before-probe-navigation)
+                  (webview-navigate wv (string-append native-origin "__glaze-smoke.html"))
+                  (let loop ([until (+ (current-inexact-milliseconds) 30000)])
+                    (set! smoke-title (webview-title wv))
+                    (cond
+                      [(equal? smoke-title "HD Smoke PASS") #t]
+                      [(and (string? smoke-title)
+                            (string-prefix? smoke-title "HD Smoke FAIL")) #f]
+                      [(> (current-inexact-milliseconds) until) #f]
+                      [else (sleep 0.25) (loop until)])))))
+         (smoke-mark 'probe-finished)
+         (set-box! selftest-passed? (and bridge-ok? #t))
+         (eprintf
+          "[selftest] transport=~a url=~a observed=~a loaded=~a origin=~a capture=~a glz1=~a title=~s\n"
+          transport url observed-url loaded? (and origin-ok? #t)
+          (and capture-ok? #t) (and bridge-ok? #t) smoke-title)
+         (smoke-mark 'before-webview-close)
+         (when (webview? wv) (webview-close wv))
+         (smoke-mark 'after-webview-close)
+         ;; A packaged smoke must exit even if a native host does not send
+         ;; the last-window callback after an explicit close. run-app supports
+         ;; app-quit! during #:on-ready; it posts the exit semaphore once.
+         (app-quit!)
+         (smoke-mark 'after-app-quit))
+       (lambda (_wv _url) (void))))
 
   (when selftest?
+    (smoke-mark 'after-run-app)
+    ;; Isolate any Windows shutdown stall: a passed GLZ1 probe must not be
+    ;; mistaken for a successful process exit. Keep cleanup and exit distinct
+    ;; in the CI logs to show which step needs the platform fix.
+    (smoke-mark 'before-smoke-cleanup)
+    (delete-directory/files smoke-root)
+    (smoke-mark 'after-smoke-cleanup)
+    ;; Keep the real exit handler, but mark entry into it: this separates
+    ;; Racket exit dispatch from Windows native/process finalization. A
+    ;; trapped shutdown must remain a CI failure, never a forced green exit.
+    (let ([original-exit-handler (exit-handler)])
+      (exit-handler
+       (lambda (status)
+         (smoke-mark 'exit-handler-enter)
+         (original-exit-handler status))))
+    (smoke-mark 'before-process-exit)
     (exit (if (unbox selftest-passed?) 0 1))))
 
 (provide api bus)

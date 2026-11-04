@@ -47,11 +47,10 @@ jobs:
         with:
           version: stable
 
-      # Pinned to the glaze main head carrying the G4 native-host
-      # conformance matrix (green on all three OSes); flip to the next
-      # tagged release (v0.18.0) once it exists.
+      # Temporary immutable PR #85 head for cross-repository native integration.
+      # Replace with the verified Glaze merge SHA before merging this PR.
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#bb98ae60ad9e2e8a59bf61ee1144141f3de96f35
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#671ea4dcacbfbfedd74a167de8ec9c1a53db51d6
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -63,3 +62,143 @@ jobs:
 
       - name: Application schema compatibility
         run: raco glaze schema check --json
+
+  packaged-native:
+    # PR evidence, never a publishing workflow. The tagged release still
+    # owns installer creation and the official release artifacts.
+    name: Packaged native GLZ1 (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-latest, windows-latest]
+    env:
+      HACKDIGEST_SELFTEST: '1'
+      GLAZE_NO_STARTUP_DIALOG: '1'
+      WEBKIT_DISABLE_DMABUF_RENDERER: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: Bogdanp/setup-racket@v1.15
+        with:
+          version: stable
+          distribution: full
+      - name: Install pinned Glaze and crypto
+        shell: bash
+        run: |
+          raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#671ea4dcacbfbfedd74a167de8ec9c1a53db51d6
+          raco pkg install --auto --no-docs --skip-installed crypto
+      - name: Install WebKitGTK for Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev xvfb
+      - name: Build packaged application (non-publishing)
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            raco glaze build --entry backend/main.rkt --name HackDigest --version "$VERSION" --sign - --out dist
+          else
+            raco glaze build --entry backend/main.rkt --name HackDigest --version "$VERSION" --out dist
+          fi
+      - name: Stage Windows WebView2 loader
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path dist -Recurse -Filter *.dll |
+            Where-Object { $_.DirectoryName -ne (Resolve-Path 'dist').Path } |
+            Copy-Item -Destination (Resolve-Path 'dist').Path -Force
+          if (-not (Test-Path 'dist/HackDigest.exe')) { throw 'packaged exe missing' }
+          if (-not (Test-Path 'dist/WebView2Loader.dll')) { throw 'WebView2 loader missing' }
+      - name: macOS packaged GLZ1 selftest
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HACKDIGEST_DATA_DIR="$(mktemp -d)"
+          ./dist/HackDigest.app/Contents/MacOS/HackDigest > "$RUNNER_TEMP/native-smoke.log" 2>&1 &
+          app_pid=$!
+          trap 'kill -9 "$app_pid" 2>/dev/null || true' EXIT
+          deadline=$((SECONDS + 120))
+          while kill -0 "$app_pid" 2>/dev/null && [ "$SECONDS" -lt "$deadline" ]; do sleep 2; done
+          if kill -0 "$app_pid" 2>/dev/null; then
+            cat "$RUNNER_TEMP/native-smoke.log"
+            echo "::error::packaged native selftest timed out"
+            exit 1
+          fi
+          status=0
+          wait "$app_pid" || status=$?
+          cat "$RUNNER_TEMP/native-smoke.log"
+          [ "$status" -eq 0 ] || { echo "::error::packaged native selftest failed ($status)"; exit 1; }
+      - name: Linux packaged GLZ1 selftest
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HACKDIGEST_DATA_DIR="$(mktemp -d)"
+          test -x dist/bin/HackDigest
+          (cd dist && timeout 120s xvfb-run -a ./bin/HackDigest) 2>&1 | tee "$RUNNER_TEMP/native-smoke.log"
+      - name: Windows packaged GLZ1 selftest
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $env:HACKDIGEST_DATA_DIR = Join-Path $env:RUNNER_TEMP 'native-smoke-data'
+          New-Item -ItemType Directory -Path $env:HACKDIGEST_DATA_DIR -Force | Out-Null
+          $out = Join-Path $env:RUNNER_TEMP 'native-smoke.stdout.log'
+          $err = Join-Path $env:RUNNER_TEMP 'native-smoke.stderr.log'
+          $app = (Resolve-Path 'dist/HackDigest.exe').Path
+          $proc = Start-Process -FilePath $app -PassThru -WorkingDirectory (Resolve-Path 'dist').Path -RedirectStandardOutput $out -RedirectStandardError $err
+          $waitStartUtc = [DateTime]::UtcNow
+          $deadline = $waitStartUtc.AddSeconds(120)
+          try {
+            # Poll the OS process table instead of Process.WaitForExit: on
+            # this runner the managed wait reported a false timeout (and a
+            # stale 1601 exit time) while HasExited was true with exit code 0.
+            # A launcher that is gone from the table has exited; the exit code
+            # below is still the gate.
+            while ((Get-Process -Id $proc.Id -ErrorAction SilentlyContinue) -and
+                   ([DateTime]::UtcNow -lt $deadline)) {
+              if ($proc.HasExited) { break }
+              Start-Sleep -Milliseconds 250
+            }
+            $live = Get-Process -Id $proc.Id -ErrorAction SilentlyContinue
+            if ($live) {
+              Write-Host '::group::Windows packaged process diagnostics'
+              Write-Host "launcher pid=$($live.Id) name=$($live.ProcessName) threads=$($live.Threads.Count) handles=$($live.HandleCount)"
+              $live.Threads | Select-Object -First 20 Id,ThreadState,WaitReason | Format-Table | Out-String | Write-Host
+              Get-CimInstance Win32_Process |
+                Where-Object { $_.ParentProcessId -eq $proc.Id } |
+                Select-Object ProcessId,ParentProcessId,Name |
+                Format-Table | Out-String | Write-Host
+              Write-Host "launcher wait-start-utc=$($waitStartUtc.ToString('o')) wait-end-utc=$([DateTime]::UtcNow.ToString('o'))"
+              Write-Host '::endgroup::'
+              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+              throw 'packaged native selftest timed out'
+            }
+            for ($i = 0; $i -lt 20 -and -not $proc.HasExited; $i++) {
+              Start-Sleep -Milliseconds 100
+            }
+            if (-not $proc.HasExited) {
+              throw 'launcher left the process table but its exit state is unavailable'
+            }
+            Write-Host "launcher exited code=$($proc.ExitCode) wait-start-utc=$($waitStartUtc.ToString('o')) wait-end-utc=$([DateTime]::UtcNow.ToString('o'))"
+            if ($proc.ExitCode -ne 0) { throw "packaged native selftest failed ($($proc.ExitCode))" }
+          } finally {
+            if (Test-Path $out) { Get-Content $out }
+            if (Test-Path $err) { Get-Content $err }
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-smoke-${{ matrix.os }}-${{ github.sha }}
+          path: ${{ runner.temp }}/native-smoke*.log
+          if-no-files-found: warn
