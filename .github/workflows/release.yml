@@ -36,6 +36,16 @@ jobs:
           test "$TAG" = "$ROOT_VERSION" || { echo "::error::tag $TAG != package.json $ROOT_VERSION"; exit 1; }
           test "$TAG" = "$BACKEND_VERSION" || { echo "::error::tag $TAG != backend app-version $BACKEND_VERSION"; exit 1; }
           grep -q "^## $TAG" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## $TAG' section"; exit 1; }
+      - name: Require Ed25519 update signing secret before packaging
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          UPDATE_ED25519_PRIVATE_KEY: ${{ secrets.UPDATE_ED25519_PRIVATE_KEY }}
+        run: |
+          if [[ -z "${UPDATE_ED25519_PRIVATE_KEY:-}" ]]; then
+            echo "::error::UPDATE_ED25519_PRIVATE_KEY missing; refusing unsigned release before expensive builds"
+            exit 1
+          fi
 
   macos:
     name: macOS package (${{ matrix.arch }})
@@ -917,71 +927,78 @@ jobs:
           find dist -mindepth 2 -type f -exec mv {} dist/ \;
           find dist -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
           ls -la dist/
-      - name: Sign the update feed (update-manifest.json)
+      - name: Sign and require trusted update feed (update-manifest.json)
         env:
           UPDATE_ED25519_PRIVATE_KEY: ${{ secrets.UPDATE_ED25519_PRIVATE_KEY }}
+        shell: bash
         run: |
           set -euo pipefail
-          case "$GITHUB_REF_NAME" in
-            v*)
-              if [[ -n "${UPDATE_ED25519_PRIVATE_KEY:-}" ]]; then
-                KEY_PEM="$RUNNER_TEMP/update-signing-key.pem"
-                printf '%s\n' "$UPDATE_ED25519_PRIVATE_KEY" > "$KEY_PEM"
-                scripts/make-update-manifest.sh "$GITHUB_REF_NAME" dist "$KEY_PEM"
-              else
-                echo "::warning::UPDATE_ED25519_PRIVATE_KEY not set — release ships without an update manifest (clients fall back to release-page updates)"
-              fi
-              ;;
-            *) echo "non-tag ref $GITHUB_REF_NAME: skipping update feed signing" ;;
-          esac
-      - name: Ensure SHA256SUMS
-        run: |
-          cd dist
-          [ -f SHA256SUMS ] || {
-            find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS
+          [[ "$GITHUB_REF_NAME" == v* ]] || { echo "::error::release publishing requires a version tag"; exit 1; }
+          [[ -n "${UPDATE_ED25519_PRIVATE_KEY:-}" ]] || {
+            echo "::error::UPDATE_ED25519_PRIVATE_KEY missing; refusing unsigned release"
+            exit 1
           }
-          shasum -a 256 --check SHA256SUMS
-      - name: Publish release (notes = CHANGELOG section for this version)
+          umask 077
+          KEY_PEM="$RUNNER_TEMP/update-signing-key.pem"
+          trap 'rm -f "$KEY_PEM"' EXIT
+          printf '%s\n' "$UPDATE_ED25519_PRIVATE_KEY" > "$KEY_PEM"
+          scripts/make-update-manifest.sh "$GITHUB_REF_NAME" dist "$KEY_PEM"
+          test -s dist/update-manifest.json || {
+            echo "::error::Signed update manifest missing; refusing to publish"
+            exit 1
+          }
+      - name: Verify all versioned release payloads and stage public assets
+        run: |
+          set -euo pipefail
+          VERSION="$(printf '%s' "$GITHUB_REF_NAME" | cut -c2-)"
+          mkdir -p public
+          for suffix in \
+            macos-arm64.dmg macos-arm64.zip macos-x64.dmg macos-x64.zip \
+            windows-x64.msi windows-x64.zip \
+            linux-arm64.tar.gz linux-arm64.zip linux-x64.tar.gz linux-x64.zip \
+            linux-arm64.deb linux-x64.deb \
+            linux-arm64.AppImage linux-x64.AppImage; do
+            name="hackdigest-$VERSION-$suffix"
+            test -s "dist/$name" || { echo "::error::Missing $name"; exit 1; }
+            cp "dist/$name" public/
+          done
+          for arch in aarch64 x86_64; do
+            rpm="$(find dist -maxdepth 1 -type f -name "hackdigest-$VERSION-*-linux-$arch.rpm" -print -quit)"
+            test -s "$rpm" || { echo "::error::Missing RPM $arch"; exit 1; }
+            cp "$rpm" public/
+          done
+          test -s dist/update-manifest.json
+          cp dist/update-manifest.json public/
+          (cd public && sha256sum hackdigest-* | LC_ALL=C sort -k2 > SHA256SUMS && sha256sum -c SHA256SUMS)
+          test "$(grep -c '^' public/SHA256SUMS)" -eq 16
+      - name: Publish release (notes from CHANGELOG)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          awk -v header="## ${VERSION}" '
+          set -euo pipefail
+          VERSION="$(printf '%s' "$GITHUB_REF_NAME" | cut -c2-)"
+          awk -v header="## $VERSION" '
             index($0, header) == 1 {on=1; next}
             on && /^## / {exit}
             on {print}
           ' CHANGELOG.md > /tmp/notes.md
-          test -s /tmp/notes.md || { echo "::error::empty release notes — CHANGELOG.md has no '## ${VERSION}' section"; exit 1; }
-          if gh release view "${{ github.ref_name }}" -R turlamai/hackdigest >/dev/null 2>&1; then
-            gh release upload "${{ github.ref_name }}" dist/* --clobber -R turlamai/hackdigest
+          test -s /tmp/notes.md || { echo "::error::Missing CHANGELOG section $VERSION"; exit 1; }
+          if gh release view "$GITHUB_REF_NAME" -R turlamai/hackdigest >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" -R turlamai/hackdigest --notes-file /tmp/notes.md
+            gh release upload "$GITHUB_REF_NAME" public/* --clobber -R turlamai/hackdigest
           else
-            gh release create "${{ github.ref_name }}" dist/* \
+            gh release create "$GITHUB_REF_NAME" public/* \
               -R turlamai/hackdigest \
-              --title "HackDigest ${{ github.ref_name }}" \
+              --title "HackDigest $VERSION" \
               --notes-file /tmp/notes.md
           fi
-      - name: Attest build provenance
+          gh release view "$GITHUB_REF_NAME" -R turlamai/hackdigest --json assets --jq '.assets[].name' |
+            while IFS= read -r name; do
+              if [ ! -f "public/$name" ]; then
+                gh release delete-asset "$GITHUB_REF_NAME" "$name" --yes -R turlamai/hackdigest
+              fi
+            done
+      - name: Attest public build provenance
         uses: actions/attest-build-provenance@v1
         with:
-          subject-path: dist/*
-      - name: Stable alias copies (versionless direct-download links)
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          # Family rule: download buttons point at
-          # releases/latest/download/<alias>, so every release also ships
-          # versionless copies of the primary installers (hackdigest also
-          # aliases the Windows portable zip). Deliberately after the
-          # provenance attestation so dist/* there stays versioned-only.
-          mkdir -p stable-alias
-          cp "dist/hackdigest-${VERSION}-macos-arm64.dmg" stable-alias/hackdigest-macos-arm64.dmg
-          cp "dist/hackdigest-${VERSION}-macos-x64.dmg" stable-alias/hackdigest-macos-x64.dmg
-          cp "dist/hackdigest-${VERSION}-windows-x64.msi" stable-alias/hackdigest-windows-x64.msi
-          cp "dist/hackdigest-${VERSION}-windows-x64.zip" stable-alias/hackdigest-windows-x64.zip
-          cp "dist/hackdigest-${VERSION}-linux-x64.deb" stable-alias/hackdigest-linux-x64.deb
-          cp "dist/hackdigest-${VERSION}-linux-arm64.deb" stable-alias/hackdigest-linux-arm64.deb
-          cp "dist/hackdigest-${VERSION}-linux-x64.AppImage" stable-alias/hackdigest-linux-x64.AppImage
-          cp "dist/hackdigest-${VERSION}-linux-arm64.AppImage" stable-alias/hackdigest-linux-arm64.AppImage
-          gh release upload "${{ github.ref_name }}" stable-alias/* --clobber -R turlamai/hackdigest
+          subject-path: public/*

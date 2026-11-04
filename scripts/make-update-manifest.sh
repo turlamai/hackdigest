@@ -42,7 +42,7 @@ done
 [[ -f "$KEY" ]] || {
   echo "error: missing signing key $KEY (see scripts/update-keys.sh)" >&2; exit 1; }
 
-BASE_URL="${RELEASE_ASSET_BASE_URL:-https://github.com/turinglambdaai/hackdigest/releases/download/$TAG}"
+BASE_URL="${RELEASE_ASSET_BASE_URL:-https://github.com/turlamai/hackdigest/releases/download/$TAG}"
 KEY_ID="hackdigest-2026-10"
 
 SCRIPT="$(mktemp /tmp/hackdigest-manifest-XXXXXX.rkt)"

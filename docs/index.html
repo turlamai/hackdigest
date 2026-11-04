@@ -46,7 +46,44 @@ var _hmt = _hmt || [];
 html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(max-width:700px){.product-start{margin:40px auto;padding:24px 20px}.product-start-grid{grid-template-columns:1fr;gap:18px}}
 </style>
 <style>.lang-menu li.lang-choice{padding:0}.lang-menu .lang-choice button{display:block;width:100%;padding:8px 12px;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}.lang-menu .lang-choice button:focus-visible{outline:2px solid currentColor;outline-offset:-2px;border-radius:4px}</style>
-</head>
+<style id="visual-showcase-css">
+/* Visual Showcase: process illustration, intentionally not an app screenshot. */
+.vs-showcase{padding:clamp(48px,7vw,88px) 24px;background:var(--bg,var(--surface,#faf7f2));color:var(--text,var(--ink,#24211d))}
+.vs-showcase *{box-sizing:border-box}
+.vs-showcase .vs-wrap{max-width:1080px;margin:0 auto}
+.vs-showcase .vs-intro{text-align:center;max-width:680px;margin:0 auto 28px}
+.vs-showcase .vs-label{text-transform:uppercase;letter-spacing:.14em;font-size:.7rem;font-weight:700;color:var(--accent,#b85d3f)}
+.vs-showcase h2{font:inherit;font-size:clamp(1.65rem,3.3vw,2.5rem);font-weight:700;line-height:1.2;letter-spacing:-.04em;margin:12px 0}
+.vs-showcase .vs-lead,.vs-showcase .vs-caption{color:var(--text-2,var(--muted,#6b6660));line-height:1.7}
+.vs-showcase .vs-frame{padding:clamp(18px,3vw,34px);border:1px solid var(--border,var(--line,#e8e2d9));background:var(--bg-card,var(--surface,#fff));border-radius:24px;box-shadow:0 20px 60px rgba(36,29,18,.07);overflow:hidden}
+.vs-showcase .vs-stage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.vs-showcase .vs-step{position:relative;min-height:170px;padding:22px 18px;border-radius:16px;background:var(--bg,var(--surface,#faf7f2));border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-step:not(:last-child):after{content:"→";position:absolute;z-index:1;right:-15px;top:50%;transform:translateY(-50%);width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--bg-card,var(--surface,#fff));color:var(--accent,#b85d3f);border:1px solid var(--border,var(--line,#e8e2d9))}
+.vs-showcase .vs-glyph{font-size:1.75rem;display:block;margin-bottom:24px;color:var(--accent,#b85d3f)}
+.vs-showcase .vs-step b{display:block;font-size:1.03rem;margin-bottom:7px}
+.vs-showcase .vs-step small{display:block;color:var(--text-2,var(--muted,#6b6660));font-size:.84rem;line-height:1.5}
+.vs-showcase .vs-caption{font-size:.79rem;text-align:center;margin:16px 0 0}
+.vs-showcase .vs-art{margin-bottom:22px;background:var(--bg,var(--surface,#f6f3ed));border:1px solid var(--border,var(--line,#e8e2d9));border-radius:18px;padding:22px;overflow:hidden;min-height:185px}
+.vs-showcase .vs-task-art{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.vs-showcase .vs-mini-board{background:var(--bg-card,var(--surface,#fff));border-radius:14px;border:1px solid var(--border,var(--line,#e8e2d9));padding:15px;box-shadow:0 6px 24px rgba(10,10,10,.04)}
+.vs-showcase .vs-mini-title{font-size:.76rem;color:var(--text-2,var(--muted,#6b6660));font-weight:700;margin-bottom:12px}
+.vs-showcase .vs-mini-task{display:flex;align-items:center;gap:10px;padding:9px 3px;border-top:1px solid var(--border,var(--line,#e8e2d9));font-size:.9rem}
+.vs-showcase .vs-ring{flex:none;height:17px;width:17px;border:2px solid var(--accent,#b85d3f);border-radius:50%}
+.vs-showcase .vs-ring.done{background:var(--accent,#b85d3f);position:relative}.vs-showcase .vs-ring.done:after{content:"✓";color:#fff;font-size:12px;position:absolute;left:2px;top:-3px}
+.vs-showcase .vs-mini-tag{margin-left:auto;color:var(--accent,#b85d3f);background:var(--accent-soft,#f7e5dd);font-size:.7rem;padding:3px 6px;border-radius:6px}
+.vs-showcase .vs-reader-art{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.vs-showcase .vs-paper,.vs-showcase .vs-annotation{border-radius:14px;background:var(--bg-card,var(--surface,#fff));border:1px solid var(--border,var(--line,#e8e2d9));padding:18px}
+.vs-showcase .vs-paper-title{font-size:.75rem;letter-spacing:.1em;color:var(--text-2,var(--muted,#6b6660));margin-bottom:22px}
+.vs-showcase .vs-line{height:9px;background:var(--border,var(--line,#e8e2d9));border-radius:8px;margin:12px 0;max-width:100%}
+.vs-showcase .vs-line.short{width:57%}.vs-showcase .vs-line.mid{width:82%}
+.vs-showcase .vs-highlight{height:15px;border-radius:3px;width:72%;background:color-mix(in srgb,var(--accent,#d97757) 32%,transparent)}
+.vs-showcase .vs-note-label{font-size:.72rem;letter-spacing:.09em;color:var(--accent,#b85d3f);font-weight:800}
+.vs-showcase .vs-note-body{font-size:.93rem;line-height:1.7;margin:18px 0}
+.vs-showcase .vs-note-foot{font-size:.75rem;color:var(--text-2,var(--muted,#6b6660))}
+html:lang(en) .vs-zh,html:lang(zh) .vs-en{display:none!important}
+@media(max-width:700px){.vs-showcase .vs-stage{grid-template-columns:1fr}.vs-showcase .vs-step{min-height:120px}.vs-showcase .vs-step:not(:last-child):after{right:calc(50% - 14px);top:auto;bottom:-15px;transform:rotate(90deg)}.vs-showcase .vs-glyph{margin-bottom:12px}.vs-showcase .vs-reader-art{grid-template-columns:1fr 1fr}.vs-showcase .vs-art{padding:14px}}
+@media(prefers-reduced-motion:reduce){.vs-showcase *, .vs-showcase *:before,.vs-showcase *:after{animation:none!important;transition:none!important}}
+</style></head>
 
 <body>
     <nav class="nav">
@@ -81,9 +118,9 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
 <p class="reader-en product-availability" lang="en">Development preview. All client features are free with your own model key; provider charges apply. Hosted translation is not open for purchase.</p><p class="reader-zh product-availability" lang="zh">开发预览。全部客户端功能可免费使用自己的模型密钥，模型费用另计。托管翻译尚未开放购买。</p>
             <p class="hero-sub" data-i18n="hero_sub">把全球最好的技术首页读成中文 —— 每条新闻、每篇原文、每个评论楼，按需翻译、按需摘要。</p>
             <div class="hero-cta">
-                <a class="btn btn-primary" href="https://github.com/turinglambdaai/hackdigest/releases/latest/download/hackdigest-macos-arm64.dmg"
+                <a class="btn btn-primary" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="macos-arm64.dmg"
                     target="_blank" rel="noopener" data-i18n="hero_download">免费下载桌面版</a>
-                <a class="btn btn-ghost" href="https://github.com/turinglambdaai/hackdigest" target="_blank"
+                <a class="btn btn-ghost" href="https://github.com/turlamai/hackdigest" target="_blank"
                     rel="noopener">GitHub ↗</a>
             </div>
             <p class="hero-note" data-i18n="hero_note">Windows · macOS · Linux 全平台免费，AGPL 开源；v0.3.0 起内置应用内更新：便携安装原地换装，安装器渠道直达发布页。</p>
@@ -120,7 +157,7 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
                 </div>
             </div>
         </div>
-    </header>
+    </header><section class="vs-showcase" id="visual-showcase" aria-label="Product workflow concept"><div class="vs-wrap"><div class="vs-intro"><span class="vs-label">PRODUCT IN CONTEXT · 产品如何工作</span><h2><span class="vs-zh" lang="zh-CN">从技术新闻到能快速理解的内容。</span><span class="vs-en" lang="en">From tech news to ideas you can digest.</span></h2><p class="vs-lead"><span class="vs-zh" lang="zh-CN">消息源仍属于原作者。用户自备模型密钥时，按需翻译与摘要；不暗示托管订阅已开放。</span><span class="vs-en" lang="en">Original authors remain the source. Use your own model provider for optional translation and digests; hosted subscriptions are not open.</span></p></div><div class="vs-frame"><div class="vs-art vs-task-art"><div class="vs-mini-board"><div class="vs-mini-title">SOURCE / INPUT</div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Hacker News story</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Original article</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Discussion thread</span></div></div><div class="vs-mini-board"><div class="vs-mini-title">RESULT / OUTPUT</div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Translation on demand</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Article summary</span></div><div class="vs-mini-task"><span class="vs-ring" aria-hidden="true"></span><span>Discussion digest</span></div></div></div><div class="vs-stage"><div class="vs-step"><span class="vs-glyph" aria-hidden="true">▤</span><b><span class="vs-zh" lang="zh-CN">浏览原文</span><span class="vs-en" lang="en">Read original</span></b><small><span class="vs-zh" lang="zh-CN">保留可追溯来源</span><span class="vs-en" lang="en">Keep original source links</span></small></div><div class="vs-step"><span class="vs-glyph" aria-hidden="true">⇄</span><b><span class="vs-zh" lang="zh-CN">按需理解</span><span class="vs-en" lang="en">Translate</span></b><small><span class="vs-zh" lang="zh-CN">使用自己配置的模型</span><span class="vs-en" lang="en">Use your own model provider</span></small></div><div class="vs-step"><span class="vs-glyph" aria-hidden="true">☷</span><b><span class="vs-zh" lang="zh-CN">提炼观点</span><span class="vs-en" lang="en">Digest</span></b><small><span class="vs-zh" lang="zh-CN">查看文章与讨论摘要</span><span class="vs-en" lang="en">Review article and thread digests</span></small></div></div><p class="vs-caption"><span class="vs-zh" lang="zh-CN">概念工作流程图，非当前产品截图；以实际发布版本和用户手册为准。</span><span class="vs-en" lang="en">Conceptual workflow—not a current screenshot. Refer to the released build and user guide.</span></p></div></div></section>
 
     <section class="section" id="digests">
         <div class="section-header">
@@ -154,32 +191,32 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
             <p data-i18n="dl_desc">所有安装包由 GitHub CI 从源码构建，并通过三平台启动冒烟验证。v0.3.0 起内置应用内更新：启动时拉取 Ed25519 签名清单，macOS / Windows 便携安装原地换装，Linux 下载归档后引导安装；安装器渠道（DMG / MSI / deb / rpm）直达发布页。</p>
         </div>
         <div class="dl-grid">
-            <a class="dl-card" href="https://github.com/turinglambdaai/hackdigest/releases/latest/download/hackdigest-windows-x64.msi">
+            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="windows-x64.msi">
                 <div class="dl-os">Windows</div>
                 <div class="dl-hint" data-i18n="dl_win">Windows 10/11 · MSI</div>
             </a>
-            <a class="dl-card" href="https://github.com/turinglambdaai/hackdigest/releases/latest/download/hackdigest-macos-arm64.dmg">
+            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="macos-arm64.dmg">
                 <div class="dl-os">macOS</div>
                 <div class="dl-hint" data-i18n="dl_mac">Apple Silicon / Intel · DMG / ZIP</div>
             </a>
-            <a class="dl-card" href="https://github.com/turinglambdaai/hackdigest/releases/latest/download/hackdigest-linux-x64.AppImage">
+            <a class="dl-card" href="https://github.com/turlamai/hackdigest/releases/latest" data-release-suffix="linux-x64.AppImage">
                 <div class="dl-os">Linux</div>
                 <div class="dl-hint" data-i18n="dl_linux">x64 / arm64 · tar.gz · deb · rpm · AppImage · zip</div>
             </a>
         </div>
-        <p style="text-align:center;margin-top:18px"><a href="https://github.com/turinglambdaai/hackdigest/releases" data-i18n="dl_all" target="_blank" rel="noopener">全部版本</a></p>
+        <p style="text-align:center;margin-top:18px"><a href="https://github.com/turlamai/hackdigest/releases" data-i18n="dl_all" target="_blank" rel="noopener">全部版本</a></p>
     </section>
 
     <section id="start-here" class="product-start" aria-label="Get started / 开始使用">
-<h2 class="reader-en " lang="en">Start with one useful session.</h2><h2 class="reader-zh " lang="zh">从一次有效使用开始。</h2><p class="reader-en start-status" lang="en">All client features are free with your own model key; provider charges apply. Hosted translation is not open for purchase.</p><p class="reader-zh start-status" lang="zh">全部客户端功能可免费使用自己的模型密钥，模型费用另计。托管翻译尚未开放购买。</p><p class="reader-en " lang="en">Desktop previews for macOS, Windows and Linux on Glaze. Native transport, packaged behavior and secret-storage parity still require release qualification.</p><p class="reader-zh " lang="zh">基于 Glaze 的 macOS、Windows、Linux 桌面预览。原生传输、打包行为和密钥存储一致性仍需发行验收。</p><div class="product-start-grid"><article><h3 class="reader-en " lang="en">01</h3><h3 class="reader-zh " lang="zh">01</h3><p class="reader-en " lang="en">Open a feed and read one story in its original form.</p><p class="reader-zh " lang="zh">打开一个信息流，先阅读一条原文。</p></article><article><h3 class="reader-en " lang="en">02</h3><h3 class="reader-zh " lang="zh">02</h3><p class="reader-en " lang="en">If you want translation, configure your own compatible model endpoint/key and test one title first.</p><p class="reader-zh " lang="zh">需要翻译时，配置自己的兼容模型端点和密钥，先测试一条标题。</p></article><article><h3 class="reader-en " lang="en">03</h3><h3 class="reader-zh " lang="zh">03</h3><p class="reader-en " lang="en">Request one article or thread digest, compare it with the original and review provider usage before starting bulk requests.</p><p class="reader-zh " lang="zh">生成一份文章或讨论摘要，对照原文，并检查服务商用量后再批量处理。</p></article></div><p class="reader-en start-limits" lang="en">Windows/Linux packaged native parity and secret storage remain tracked in <a href="https://github.com/turinglambdaai/hackdigest/issues/2">#2</a>. No mobile or hosted-sync service is included.</p><p class="reader-zh start-limits" lang="zh">Windows/Linux 打包原生一致性和密钥存储仍在 <a href="https://github.com/turinglambdaai/hackdigest/issues/2">#2</a> 跟进。不包含移动端或托管同步服务。</p><div class="start-links"><a class="reader-en" lang="en" href="https://github.com/turinglambdaai/hackdigest/blob/main/docs/USER-GUIDE.md">Installation, privacy &amp; recovery</a><a class="reader-zh" lang="zh" href="https://github.com/turinglambdaai/hackdigest/blob/main/docs/USER-GUIDE.zh-CN.md">安装、隐私与恢复</a><a href="https://github.com/turinglambdaai/hackdigest/issues"><span class="reader-en " lang="en">Get help</span><span class="reader-zh " lang="zh">反馈与帮助</span></a></div>
+<h2 class="reader-en " lang="en">Start with one useful session.</h2><h2 class="reader-zh " lang="zh">从一次有效使用开始。</h2><p class="reader-en start-status" lang="en">All client features are free with your own model key; provider charges apply. Hosted translation is not open for purchase.</p><p class="reader-zh start-status" lang="zh">全部客户端功能可免费使用自己的模型密钥，模型费用另计。托管翻译尚未开放购买。</p><p class="reader-en " lang="en">Desktop previews for macOS, Windows and Linux on Glaze. Native transport, packaged behavior and secret-storage parity still require release qualification.</p><p class="reader-zh " lang="zh">基于 Glaze 的 macOS、Windows、Linux 桌面预览。原生传输、打包行为和密钥存储一致性仍需发行验收。</p><div class="product-start-grid"><article><h3 class="reader-en " lang="en">01</h3><h3 class="reader-zh " lang="zh">01</h3><p class="reader-en " lang="en">Open a feed and read one story in its original form.</p><p class="reader-zh " lang="zh">打开一个信息流，先阅读一条原文。</p></article><article><h3 class="reader-en " lang="en">02</h3><h3 class="reader-zh " lang="zh">02</h3><p class="reader-en " lang="en">If you want translation, configure your own compatible model endpoint/key and test one title first.</p><p class="reader-zh " lang="zh">需要翻译时，配置自己的兼容模型端点和密钥，先测试一条标题。</p></article><article><h3 class="reader-en " lang="en">03</h3><h3 class="reader-zh " lang="zh">03</h3><p class="reader-en " lang="en">Request one article or thread digest, compare it with the original and review provider usage before starting bulk requests.</p><p class="reader-zh " lang="zh">生成一份文章或讨论摘要，对照原文，并检查服务商用量后再批量处理。</p></article></div><p class="reader-en start-limits" lang="en">Windows/Linux packaged native parity and secret storage remain tracked in <a href="https://github.com/turlamai/hackdigest/issues/2">#2</a>. No mobile or hosted-sync service is included.</p><p class="reader-zh start-limits" lang="zh">Windows/Linux 打包原生一致性和密钥存储仍在 <a href="https://github.com/turlamai/hackdigest/issues/2">#2</a> 跟进。不包含移动端或托管同步服务。</p><div class="start-links"><a class="reader-en" lang="en" href="https://github.com/turlamai/hackdigest/blob/main/docs/USER-GUIDE.md">Installation, privacy &amp; recovery</a><a class="reader-zh" lang="zh" href="https://github.com/turlamai/hackdigest/blob/main/docs/USER-GUIDE.zh-CN.md">安装、隐私与恢复</a><a href="https://github.com/turlamai/hackdigest/issues"><span class="reader-en " lang="en">Get help</span><span class="reader-zh " lang="zh">反馈与帮助</span></a></div>
 </section>
 <footer class="footer">
         <p>AGPL-3.0 · 数据来自 <a href="https://github.com/HackerNews/API" target="_blank"
                 rel="noopener">Hacker News 官方 API</a></p>
-        <p><a href="https://github.com/turinglambdaai/hackdigest" target="_blank" rel="noopener">GitHub</a> · <a
+        <p><a href="https://github.com/turlamai/hackdigest" target="_blank" rel="noopener">GitHub</a> · <a
                 href="https://jrtx.site" target="_blank" rel="noopener">jrtx.site</a></p>
     </footer>
-<nav id="product-support" aria-label="Support / 支持"><a href="https://github.com/turinglambdaai/hackdigest/issues"><span class="support-zh">反馈</span><span class="support-en" lang="en">Feedback</span></a> <a href="https://github.com/turinglambdaai/hackdigest/releases"><span class="support-zh">发布与更新</span><span class="support-en" lang="en">Releases</span></a> <a href="https://github.com/turinglambdaai/hackdigest/blob/main/LICENSE"><span class="support-zh">源码许可</span><span class="support-en" lang="en">Source license</span></a> <a class="support-zh" href="https://github.com/turinglambdaai/hackdigest/blob/main/docs/USER-GUIDE.zh-CN.md">使用与帮助</a> <a class="support-en" lang="en" href="https://github.com/turinglambdaai/hackdigest/blob/main/docs/USER-GUIDE.md">Usage & help</a></nav>
+<nav id="product-support" aria-label="Support / 支持"><a href="https://github.com/turlamai/hackdigest/issues"><span class="support-zh">反馈</span><span class="support-en" lang="en">Feedback</span></a> <a href="https://github.com/turlamai/hackdigest/releases"><span class="support-zh">发布与更新</span><span class="support-en" lang="en">Releases</span></a> <a href="https://github.com/turlamai/hackdigest/blob/main/LICENSE"><span class="support-zh">源码许可</span><span class="support-en" lang="en">Source license</span></a> <a class="support-zh" href="https://github.com/turlamai/hackdigest/blob/main/docs/USER-GUIDE.zh-CN.md">使用与帮助</a> <a class="support-en" lang="en" href="https://github.com/turlamai/hackdigest/blob/main/docs/USER-GUIDE.md">Usage & help</a></nav>
 
     <script>
         const I18N = {
@@ -224,48 +261,61 @@ html:lang(en) .reader-zh,html:lang(zh) .reader-en{display:none!important}@media(
         });
     </script>
     <script>
-        // Platform-aware direct downloads: the hero button and the matching
-        // dl-card point straight at the versionless alias for the visitor's
-        // OS (mac/linux arch refined via userAgentData); the card gets a
-        // .current outline. The hero label moves into the same i18n slots
-        // (ZH captured above + I18N.en) so language toggles keep it.
+        // Only exact tagged installer URLs are used; never depend on
+        // versionless binary aliases that the release no longer publishes.
         (function () {
-            var BASE = 'https://github.com/turinglambdaai/hackdigest/releases/latest/download/';
+            var page = 'https://github.com/turlamai/hackdigest/releases/latest';
             var ua = navigator.userAgent;
             var os = /Windows/i.test(ua) ? 'win' : (/Mac|iPhone|iPad/i.test(ua) ? 'mac' : (/Linux|X11/i.test(ua) ? 'linux' : 'mac'));
             var arch = os === 'linux' && /aarch64|arm/i.test(ua) ? 'arm64' : (os === 'linux' ? 'x64' : 'arm64');
+            var release = null;
             var style = document.createElement('style');
             style.textContent = '.dl-card.current{border-color:var(--accent,#e06845);box-shadow:0 0 0 1px var(--accent,#e06845)}';
             document.head.appendChild(style);
-            var heroFile = { mac: 'hackdigest-macos-' + arch + '.dmg', win: 'hackdigest-windows-x64.msi', linux: 'hackdigest-linux-' + arch + '.AppImage' }[os];
-            var heroLabel = {
-                zh: { mac: '免费下载 macOS 版', win: '免费下载 Windows 版', linux: '免费下载 Linux 版' },
-                en: { mac: 'Download for macOS — free', win: 'Download for Windows — free', linux: 'Download for Linux — free' }
+            var labels = {
+                mac: {zh: '免费下载 macOS 版', en: 'Download for macOS — free'},
+                win: {zh: '免费下载 Windows 版', en: 'Download for Windows — free'},
+                linux: {zh: '免费下载 Linux 版', en: 'Download for Linux — free'}
             }[os];
-            ZH['hero_download'] = heroLabel.zh;
-            I18N.en['hero_download'] = heroLabel.en;
-            document.querySelector('a[data-i18n="hero_download"]').innerHTML = lang === 'en' ? I18N.en['hero_download'] : ZH['hero_download'];
-            document.querySelector('a[data-i18n="dl_all"]').innerHTML = lang === 'en' ? I18N.en['dl_all'] : ZH['dl_all'];
-            var cardSel = { mac: 'hackdigest-macos', win: 'hackdigest-windows', linux: 'hackdigest-linux' }[os];
-            document.querySelectorAll('.dl-grid a.dl-card').forEach(function (card) {
-                if (card.getAttribute('href').indexOf(cardSel) !== -1) {
-                    if (os !== 'win') {
-                        var f = os === 'mac' ? 'hackdigest-macos-' + arch + '.dmg' : 'hackdigest-linux-' + arch + '.AppImage';
-                        card.setAttribute('href', BASE + f);
-                    }
-                    card.classList.add('current');
-                }
-            });
+            ZH['hero_download'] = labels.zh;
+            I18N.en['hero_download'] = labels.en;
+            var hero = document.querySelector('a[data-i18n="hero_download"]');
+            if (hero) hero.textContent = lang === 'en' ? labels.en : labels.zh;
+            var all = document.querySelector('a[data-i18n="dl_all"]');
+            if (all) all.textContent = lang === 'en' ? I18N.en['dl_all'] : ZH['dl_all'];
+            var prefix = {mac: 'macos-', win: 'windows-', linux: 'linux-'}[os];
+            var current = Array.from(document.querySelectorAll('.dl-grid a.dl-card'))
+                .find(function (a) { return (a.dataset.releaseSuffix || '').startsWith(prefix); });
+            if (current) current.classList.add('current');
+            function resolve() {
+                var suffix = {mac: 'macos-' + arch + '.dmg', win: 'windows-x64.msi',
+                              linux: 'linux-' + arch + '.AppImage'}[os];
+                if (hero) hero.dataset.releaseSuffix = suffix;
+                if (current) current.dataset.releaseSuffix = suffix;
+                document.querySelectorAll('a[data-release-suffix]').forEach(function (a) {
+                    a.href = page;
+                    if (!release || release.draft || release.prerelease ||
+                        !/^v[0-9]+\.[0-9]+\.[0-9]+$/.test(release.tag_name)) return;
+                    var name = 'hackdigest-' + release.tag_name.slice(1) + '-' + a.dataset.releaseSuffix;
+                    var exact = 'https://github.com/turlamai/hackdigest/releases/download/' + release.tag_name + '/' + name;
+                    if ((release.assets || []).some(function (x) {
+                        return x.name === name && x.size > 0 && x.browser_download_url === exact;
+                    })) a.href = exact;
+                });
+            }
+            resolve();
             if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
                 navigator.userAgentData.getHighEntropyValues(['architecture', 'platform']).then(function (h) {
-                    if (!h || /Windows/i.test(h.platform || '')) return; // windows ships x64-only
+                    if (!h || /Windows/i.test(h.platform || '')) return;
                     var a = h.architecture === 'arm' ? 'arm64' : (h.architecture === 'x86' ? 'x64' : null);
-                    if (!a || a === arch) return;
-                    var f = os === 'mac' ? 'hackdigest-macos-' + a + '.dmg' : 'hackdigest-linux-' + a + '.AppImage';
-                    var u = BASE + f;
-                    document.querySelectorAll('a[href^="' + BASE + '"]').forEach(function (x) { x.setAttribute('href', u); });
+                    if (a && a !== arch) { arch = a; resolve(); }
                 }).catch(function () {});
             }
+            fetch('https://api.github.com/repos/turlamai/hackdigest/releases/latest',
+                  {headers: {'Accept': 'application/vnd.github+json'}})
+                .then(function (r) { if (!r.ok) throw new Error('release lookup'); return r.json(); })
+                .then(function (data) { release = data; resolve(); })
+                .catch(function () { /* Releases page is the fallback. */ });
         })();
     </script>
 </body>

@@ -94,7 +94,7 @@
 
 (define app-display-name "HackDigest")
 (define release-page-base
-  "https://github.com/turinglambdaai/hackdigest/releases")
+  "https://github.com/turlamai/hackdigest/releases")
 
 (define maximum-download-bytes (* 800 1024 1024))
 

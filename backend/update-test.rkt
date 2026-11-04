@@ -28,7 +28,7 @@
 (test-case "manifest url joins the moving latest location"
   (parameterize ([current-update-base-url #f])
     (check-equal? (manifest-url)
-                  "https://github.com/turinglambdaai/hackdigest/releases/latest/download/update-manifest.json"))
+                  "https://github.com/turlamai/hackdigest/releases/latest/download/update-manifest.json"))
   (parameterize ([current-update-base-url "http://127.0.0.1:9/feed"])
     (check-equal? (manifest-url)
                   "http://127.0.0.1:9/feed/update-manifest.json")))
