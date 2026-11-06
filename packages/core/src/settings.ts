@@ -5,7 +5,7 @@
 import type { LLMConfig } from './llm';
 import { kvGet, kvSet } from './store';
 import { readDataFile, writeDataFile } from './dataFile';
-import { hasBackend } from './bridge';
+import { apiPost, hasBackend } from './bridge';
 
 export interface Shortcuts {
   listNext: string;
@@ -33,6 +33,8 @@ export const DEFAULT_SHORTCUTS: Shortcuts = {
   detailDigest: 'd',
 };
 
+export type KeyStorageMode = 'keyring' | 'plaintext-optout';
+
 export interface Settings {
   uiLang: 'zh' | 'en';
   theme: 'light' | 'dark' | 'auto';
@@ -43,6 +45,10 @@ export interface Settings {
   shortcuts: Shortcuts;
   autoTranslateOnScroll: boolean;
   autoTranslateTitles: boolean;
+  /** Key custody: the BYOK key lives in the system keyring ('keyring') or
+   *  in plain settings after an explicit opt-out. Absent = undecided (a
+   *  fresh install or no key yet); the backend migrates at startup. */
+  apiKeyStorage?: KeyStorageMode;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -64,12 +70,26 @@ export function mergeStoredSettings(raw: Partial<Settings> | null | undefined): 
   // must keep working as-is. The cached hostedStatus is dropped.
   const { hostedStatus: _legacyQuota, ...rest } = (raw ?? {}) as Partial<Settings> & { hostedStatus?: unknown };
   const legacyHosted = rest.providerId === 'hosted';
+  // Keyring custody keeps settings.json keyless — an absent apiKey field
+  // must not surface as undefined into the page's controlled inputs.
+  const llm: LLMConfig | null = rest.llm
+    ? { ...rest.llm, baseUrl: rest.llm.baseUrl ?? '', apiKey: rest.llm.apiKey ?? '', model: rest.llm.model ?? '' }
+    : null;
   return {
     ...DEFAULT_SETTINGS,
     ...rest,
+    llm,
     providerId: legacyHosted ? 'custom' : (rest.providerId ?? ''),
     shortcuts: { ...DEFAULT_SHORTCUTS, ...(raw?.shortcuts ?? {}) },
   };
+}
+
+/** Ask the backend to move the key between the system keyring and plain
+ *  settings (issue #2 secure-storage slice). Throws on refusal — e.g. no
+ *  keyring available — so the page can surface the reason. */
+export async function setKeyStorageMode(mode: Exclude<KeyStorageMode, never> | 'plaintext'): Promise<void> {
+  if (!(await hasBackend())) throw new Error('key storage requires the backend');
+  await apiPost('/api/settings/key-storage', { mode });
 }
 
 // The backend masks a stored BYOK key as this sentinel on reads. Legacy
