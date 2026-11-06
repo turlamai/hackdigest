@@ -287,3 +287,18 @@
         (migrate-key-storage!)
         (check-equal? (storage-mode) ""))
       (lambda () (putenv "HACKDIGEST_DATA_DIR" "")))))
+
+(test-case "move-key-storage! refuses with an error when no keyring exists"
+  (define tmp (make-temporary-file "hd-sec7-~a" 'directory))
+  (putenv "HACKDIGEST_DATA_DIR" (path->string tmp))
+  (parameterize ([current-secure-store unavailable-store])
+    (dynamic-wind
+      void
+      (lambda ()
+        ;; Moving to the keyring without a keyring reports 'unavailable;
+        ;; the route turns that into a user error so the page can show the
+        ;; refusal reason instead of a fake success.
+        (check-equal? (move-key-storage! "keyring") 'unavailable)
+        ;; The plaintext direction is always available (explicit opt-out).
+        (check-equal? (move-key-storage! "plaintext") 'noop))
+      (lambda () (putenv "HACKDIGEST_DATA_DIR" "")))))

@@ -205,6 +205,11 @@
   [(POST "api/settings/key-storage")
    (key-storage [mode GString])
    (define result (move-key-storage! mode))
+   ;; 'unavailable must surface as an error so the page can show the
+   ;; refusal reason instead of pretending the move happened; 'noop is a
+   ;; legitimate no-change answer (custody already as requested).
+   (when (eq? result 'unavailable)
+     (raise-user-error 'key-storage "no usable system keyring on this machine"))
    (hasheq 'mode (storage-mode)
            'migrated (if (eq? result 'migrated) #t 'null))]
 
