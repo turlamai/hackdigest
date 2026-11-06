@@ -184,7 +184,7 @@
          ;;  56 Attributes(ptr) 64 TargetAlias(ptr) 72 UserName(ptr)
          (define credential-sizeof 80)
          (define (write-u32! buf off v)
-           (integer->integer-bytes v 4 #f #t buf off))
+           (integer->integer-bytes v 4 #f #f buf off))
          ;; ptr-set!'s third argument counts ELEMENTS of the type, not
          ;; bytes — through _pointer an offset of 8 would write at byte 64.
          ;; ptr-add moves in bytes.
