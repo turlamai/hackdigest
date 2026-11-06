@@ -185,12 +185,15 @@
          (define credential-sizeof 80)
          (define (write-u32! buf off v)
            (integer->integer-bytes v 4 #f #t buf off))
+         ;; ptr-set!'s third argument counts ELEMENTS of the type, not
+         ;; bytes — through _pointer an offset of 8 would write at byte 64.
+         ;; ptr-add moves in bytes.
          (define (write-ptr! buf off v)
-           (ptr-set! buf _pointer off v))
+           (ptr-set! (ptr-add buf off) _pointer v))
 
          (define-ffi-definer define-advapi advapi32
            #:default-make-fail make-not-available)
-         (define-advapi CredWriteW (_fun _bytes _uint32 -> _bool))
+         (define-advapi CredWriteW (_fun #:save-errno 'windows _bytes _uint32 -> _bool))
          (define-advapi CredReadW
            (_fun _string/utf-16 _uint32 _uint32
                  (c : (_ptr o _pointer))
@@ -254,7 +257,8 @@
             (define ok (CredWriteW buf 0))
             (free blob-buf)
             (free target-buf)
-            (unless ok (error 'keyring-set! "CredWriteW failed")))
+            (unless ok
+              (error 'keyring-set! "CredWriteW failed (GetLastError ~a)" (saved-errno))))
           (λ ()
             ;; Absence is fine on delete.
             (unless (CredDeleteW target cred-type-generic 0)
