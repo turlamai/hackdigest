@@ -86,6 +86,7 @@
   (for/list ([m (in-list arr)])
     (cons (string->symbol (hash-ref m 'role)) (hash-ref m 'content))))
 
+
 (define (jsexpr->trans-rows rows)
   (for/list ([r (in-list rows)])
     (match r
@@ -220,12 +221,14 @@
 
   [(POST "api/llm/chat")
    (llm-chat-r [cfg hash?] [msgs list?] [opts hash?])
+   (define the-cfg (resolve-llm-config (jsexpr->cfg cfg)))
+   (define-values [json-mode max-tokens temperature] (chat-opts-from-jsexpr opts))
    (hasheq 'content
-           (chat (resolve-llm-config (jsexpr->cfg cfg))
+           (chat the-cfg
                  (jsexpr->msgs msgs)
-                 #:json-mode (hash-ref opts 'jsonMode #f)
-                 #:max-tokens (hash-ref opts 'maxTokens #f)
-                 #:temperature (hash-ref opts 'temperature 0.3)))]
+                 #:json-mode json-mode
+                 #:max-tokens max-tokens
+                 #:temperature temperature))]
 
   ;; Wire protocol: first line "OK" or "ERR <status> <message>", then raw
   ;; text deltas. POST can't use EventSource, so the page reads the body
@@ -236,6 +239,7 @@
    (llm-chat-stream [cfg hash?] [msgs list?] [opts hash?])
    (define the-cfg (resolve-llm-config (jsexpr->cfg cfg)))
    (define the-msgs (jsexpr->msgs msgs))
+   (define-values [json-mode max-tokens temperature] (chat-opts-from-jsexpr opts))
    (streaming-response
     (lambda (out)
       (define wrote-status? #f)
@@ -260,9 +264,9 @@
                 (fprintf out "ERR 0 ~a\n" (string-replace (exn-message e) "\n" " "))
                 (flush-output out)))])
         (chat the-cfg the-msgs
-              #:json-mode (hash-ref opts 'jsonMode #f)
-              #:max-tokens (hash-ref opts 'maxTokens #f)
-              #:temperature (hash-ref opts 'temperature 0.3)
+              #:json-mode json-mode
+              #:max-tokens max-tokens
+              #:temperature temperature
               #:on-delta
               (lambda (delta)
                 (status-ok!)

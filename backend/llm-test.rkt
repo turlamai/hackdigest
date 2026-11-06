@@ -199,3 +199,25 @@
       (putenv "HACKDIGEST_LLM_TIMEOUT_SECS" "")
       (tcp-close listener)
       (kill-thread server-thread))))
+
+;; Page chat opts: JSON null arrives as the 'null symbol (read-json), not
+;; #f — a naive hash-ref passed it into the llm contract and got the route
+;; blamed on every page-initiated non-streaming chat (the page always sends
+;; maxTokens: null for non-cap calls).
+(test-case "chat-opts-from-jsexpr collapses JSON null to defaults"
+  (define-values (jm mt tp) (chat-opts-from-jsexpr (hasheq 'jsonMode #f 'maxTokens 'null 'temperature 0.3)))
+  (check-equal? jm #f)
+  (check-equal? mt #f)
+  (check-equal? tp 0.3))
+
+(test-case "chat-opts-from-jsexpr passes numeric values through"
+  (define-values (jm mt tp) (chat-opts-from-jsexpr (hasheq 'jsonMode #t 'maxTokens 512 'temperature 0.7)))
+  (check-equal? jm #t)
+  (check-equal? mt 512)
+  (check-equal? tp 0.7))
+
+(test-case "chat-opts-from-jsexpr defaults on missing keys"
+  (define-values (jm mt tp) (chat-opts-from-jsexpr (hasheq)))
+  (check-equal? jm #f)
+  (check-equal? mt #f)
+  (check-equal? tp 0.3))
