@@ -847,9 +847,30 @@ jobs:
           $env:GLAZE_API_TOKEN = 'smoke-token'
           $outLog = Join-Path $env:RUNNER_TEMP 'hd-smoke-out.log'
           $errLog = Join-Path $env:RUNNER_TEMP 'hd-smoke-err.log'
-          $proc = Start-Process -FilePath (Resolve-Path 'dist/HackDigest.exe').Path -PassThru `
-            -WorkingDirectory (Resolve-Path 'dist').Path `
-            -RedirectStandardOutput $outLog -RedirectStandardError $errLog
+          # The single-instance TCP lock can outlive the selftest app for a
+          # few seconds (a lingering launcher child or a TIME_WAIT socket on
+          # Windows runners), so clear leftovers and retry on the
+          # "another instance is running" early exit instead of failing the
+          # job (dispatch 42149849769).
+          Get-Process HackDigest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 2
+          $proc = $null
+          foreach ($attempt in 1..5) {
+            $proc = Start-Process -FilePath (Resolve-Path 'dist/HackDigest.exe').Path -PassThru `
+              -WorkingDirectory (Resolve-Path 'dist').Path `
+              -RedirectStandardOutput $outLog -RedirectStandardError $errLog
+            Start-Sleep -Seconds 3
+            if (-not $proc.HasExited) { break }
+            $early = (Get-Content $outLog -ErrorAction SilentlyContinue) -join ' '
+            if ($early -match 'another instance is running') {
+              Write-Host "attempt ${attempt}: instance lock held; waiting for it to clear"
+              Get-Process HackDigest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+              Start-Sleep -Seconds 8
+            } else {
+              throw "packaged app exited early (exit code $($proc.ExitCode)): $early"
+            }
+          }
+          if (-not $proc -or $proc.HasExited) { throw 'packaged app never stayed up across retries' }
           try {
             # The app process can hold several listening sockets (single-
             # instance guard, HTTP server), and which one comes first
