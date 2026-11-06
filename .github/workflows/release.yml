@@ -855,7 +855,9 @@ jobs:
           Get-Process HackDigest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
           Start-Sleep -Seconds 2
           $proc = $null
-          foreach ($attempt in 1..5) {
+          # Windows TIME_WAIT holds the bound lock socket for 60-120s after
+          # the selftest exits; span at least three minutes of retries.
+          foreach ($attempt in 1..15) {
             $proc = Start-Process -FilePath (Resolve-Path 'dist/HackDigest.exe').Path -PassThru `
               -WorkingDirectory (Resolve-Path 'dist').Path `
               -RedirectStandardOutput $outLog -RedirectStandardError $errLog
@@ -865,7 +867,7 @@ jobs:
             if ($early -match 'another instance is running') {
               Write-Host "attempt ${attempt}: instance lock held; waiting for it to clear"
               Get-Process HackDigest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-              Start-Sleep -Seconds 8
+              Start-Sleep -Seconds 12
             } else {
               throw "packaged app exited early (exit code $($proc.ExitCode)): $early"
             }
