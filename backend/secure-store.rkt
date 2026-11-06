@@ -172,66 +172,89 @@
   (and (eq? (system-type) 'windows)
        (with-handlers ([exn:fail? (λ (_) #f)])
          (define advapi32 (ffi-lib "Advapi32.dll"))
-         (define-cstruct _FILETIME
-           ([dwLowDateTime _uint32]
-            [dwHighDateTime _uint32]))
-         ;; x64 ABI: the DWORD CredentialBlobSize is followed by a pointer,
-         ;; so the struct needs natural 8-byte alignment — without it the
-         ;; fields after the size sit 4 bytes low and CredWriteW reads
-         ;; garbage pointers (heap corruption, 0xc0000374 at startup, seen
-         ;; live on the Windows VM).
-         (define-cstruct _CREDENTIALW
-           ([Flags _uint32]
-            [Type _uint32]
-            [TargetName _string/utf-16]
-            [Comment _string/utf-16]
-            [LastWritten _FILETIME]
-            [CredentialBlobSize _uint32]
-            [CredentialBlob _pointer]
-            [Persist _uint32]
-            [AttributeCount _uint32]
-            [Attributes _pointer]
-            [TargetAlias _string/utf-16]
-            [UserName _string/utf-16])
-           #:alignment 8)
+         ;; CREDENTIALW packed by hand for the x64 ABI (sizeof = 80). A
+         ;; define-cstruct laid this out compactly and CredWriteW read
+         ;; garbage pointers after the DWORD size field — startup heap
+         ;; corruption (0xc0000374), caught live on the Windows VM. Manual
+         ;; offsets remove every layout assumption:
+         ;;   0 Flags(u32)   4 Type(u32)     8 TargetName(ptr)
+         ;;  16 Comment(ptr)                24 LastWritten(2x u32)
+         ;;  32 BlobSize(u32)  [pad to 40]  40 Blob(ptr)
+         ;;  48 Persist(u32)  52 AttrCount(u32)
+         ;;  56 Attributes(ptr) 64 TargetAlias(ptr) 72 UserName(ptr)
+         (define credential-sizeof 80)
+         (define (write-u32! buf off v)
+           (integer->integer-bytes v 4 #f #t buf off))
+         (define (write-ptr! buf off v)
+           (ptr-set! buf _pointer off v))
+
          (define-ffi-definer define-advapi advapi32
            #:default-make-fail make-not-available)
-         (define-advapi CredWriteW (_fun _CREDENTIALW-pointer/null _uint32 -> _bool))
+         (define-advapi CredWriteW (_fun _bytes _uint32 -> _bool))
          (define-advapi CredReadW
            (_fun _string/utf-16 _uint32 _uint32
-                 (c : (_ptr o _CREDENTIALW-pointer/null))
+                 (c : (_ptr o _pointer))
                  -> (ok : _bool)
                  -> (and ok c)))
          (define-advapi CredDeleteW (_fun _string/utf-16 _uint32 _uint32 -> _bool))
          (define-advapi CredFree (_fun _pointer -> _void))
          (define target (string-append keyring-service "/" keyring-account))
+         ;; NUL-terminated UTF-16LE (BMP only — the target name is ASCII).
+         (define (string->utf16le-z s)
+           (define b (make-bytes (+ (* 2 (string-length s)) 2) 0))
+           (for ([ch (in-string s)] [i (in-naturals)])
+             (define c (char->integer ch))
+             (bytes-set! b (* 2 i) (bitwise-and c #xFF))
+             (bytes-set! b (+ (* 2 i) 1) (bitwise-and (arithmetic-shift c -8) #xFF)))
+           b)
          (define cred-type-generic 1)
          (define cred-persist-local-machine 2)
+
+         (define (read-blob-from c)
+           ;; c is the API-allocated CREDENTIALW; read blob size/pointer at
+           ;; the ABI offsets (32/40; ptr-add counts bytes) and return the
+           ;; UTF-8 key.
+           (define size (ptr-ref (ptr-add c 32) _uint32))
+           (cond
+             [(<= size 0) ""]
+             [else
+              (define bp (ptr-ref (ptr-add c 40) _pointer))
+              (define b (make-bytes size))
+              (memcpy b bp size)
+              (bytes->string/utf-8 b)]))
 
          (secure-store
           (λ () #t)
           (λ ()
             (define c (CredReadW target cred-type-generic 0))
             (and c
-                 (let* ([size (CREDENTIALW-CredentialBlobSize c)]
-                        [b (make-bytes size)])
-                   (memcpy b (CREDENTIALW-CredentialBlob c) size)
-                   (CredFree c)
-                   (bytes->string/utf-8 b))))
+                 (begin0 (read-blob-from c)
+                   (CredFree c))))
           (λ (v)
             (define blob (string->bytes/utf-8 v))
-            (define blob-ptr (malloc (bytes-length blob) 'raw))
-            (memcpy blob-ptr blob (bytes-length blob))
-            (define c (make-CREDENTIALW
-                       0 cred-type-generic
-                       target #f
-                       (make-FILETIME 0 0)
-                       (bytes-length blob) blob-ptr
-                       cred-persist-local-machine
-                       0 #f #f #f))
-            (begin0 (unless (CredWriteW c 0) (error 'keyring-set! "CredWriteW failed"))
-              (free blob-ptr)
-              (free c)))
+            (define target-w (string->utf16le-z target))
+            (define blob-buf (malloc (bytes-length blob) 'raw))
+            (memcpy blob-buf blob (bytes-length blob))
+            (define target-buf (malloc (bytes-length target-w) 'raw))
+            (memcpy target-buf target-w (bytes-length target-w))
+            (define buf (make-bytes credential-sizeof 0))
+            (write-u32! buf 0 0)                     ; Flags
+            (write-u32! buf 4 cred-type-generic)     ; Type
+            (write-ptr! buf 8 target-buf)            ; TargetName
+            (write-ptr! buf 16 #f)                   ; Comment
+            (write-u32! buf 24 0)                    ; LastWritten lo
+            (write-u32! buf 28 0)                    ; LastWritten hi
+            (write-u32! buf 32 (bytes-length blob))  ; CredentialBlobSize
+            (write-ptr! buf 40 blob-buf)             ; CredentialBlob
+            (write-u32! buf 48 cred-persist-local-machine) ; Persist
+            (write-u32! buf 52 0)                    ; AttributeCount
+            (write-ptr! buf 56 #f)                   ; Attributes
+            (write-ptr! buf 64 #f)                   ; TargetAlias
+            (write-ptr! buf 72 #f)                   ; UserName
+            (define ok (CredWriteW buf 0))
+            (free blob-buf)
+            (free target-buf)
+            (unless ok (error 'keyring-set! "CredWriteW failed")))
           (λ ()
             ;; Absence is fine on delete.
             (unless (CredDeleteW target cred-type-generic 0)
