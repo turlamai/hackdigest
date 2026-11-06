@@ -792,16 +792,47 @@ jobs:
           New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
           $env:HACKDIGEST_DATA_DIR = $dataDir
           $env:HACKDIGEST_SELFTEST = '1'
+          $out = Join-Path $env:RUNNER_TEMP 'hd-selftest.stdout.log'
+          $err = Join-Path $env:RUNNER_TEMP 'hd-selftest.stderr.log'
           $proc = Start-Process -FilePath (Resolve-Path 'dist/HackDigest.exe').Path -PassThru `
-            -WorkingDirectory (Resolve-Path 'dist').Path
+            -WorkingDirectory (Resolve-Path 'dist').Path `
+            -RedirectStandardOutput $out -RedirectStandardError $err
+          $waitStartUtc = [DateTime]::UtcNow
+          $deadline = $waitStartUtc.AddSeconds(120)
           try {
-            if (-not $proc.WaitForExit(120000)) {
-              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-              throw "native selftest did not terminate in 120s"
+            # Poll the OS process table instead of Process.WaitForExit: on
+            # these runners the managed wait reported a false timeout (and a
+            # stale 1601 exit time) while HasExited was true with exit code
+            # 0 — the same false-timeout class ci.yml fixed in 2b7dde6 /
+            # 982ad4a (issue #26). A launcher that is gone from the table
+            # has exited; the exit code below is still the gate.
+            while ((Get-Process -Id $proc.Id -ErrorAction SilentlyContinue) -and
+                   ([DateTime]::UtcNow -lt $deadline)) {
+              if ($proc.HasExited) { break }
+              Start-Sleep -Milliseconds 250
             }
+            $live = Get-Process -Id $proc.Id -ErrorAction SilentlyContinue
+            if ($live) {
+              Write-Host '::group::Windows packaged selftest diagnostics'
+              Write-Host "launcher pid=$($live.Id) name=$($live.ProcessName) threads=$($live.Threads.Count) handles=$($live.HandleCount)"
+              $live.Threads | Select-Object -First 20 Id,ThreadState,WaitReason | Format-Table | Out-String | Write-Host
+              Write-Host "launcher wait-start-utc=$($waitStartUtc.ToString('o')) wait-end-utc=$([DateTime]::UtcNow.ToString('o'))"
+              Write-Host '::endgroup::'
+              Stop-Process -Id $live.Id -Force -ErrorAction SilentlyContinue
+              throw 'native selftest did not terminate in 120s'
+            }
+            for ($i = 0; $i -lt 20 -and -not $proc.HasExited; $i++) {
+              Start-Sleep -Milliseconds 100
+            }
+            if (-not $proc.HasExited) {
+              throw 'launcher left the process table but its exit state is unavailable'
+            }
+            Write-Host "launcher exited code=$($proc.ExitCode) wait-start-utc=$($waitStartUtc.ToString('o')) wait-end-utc=$([DateTime]::UtcNow.ToString('o'))"
             if ($proc.ExitCode -ne 0) { throw "native selftest failed (exit $($proc.ExitCode))" }
             Write-Host "native selftest passed (window opened, page rendered, capture taken)"
           } finally {
+            if (Test-Path $out) { Get-Content $out }
+            if (Test-Path $err) { Get-Content $err }
             Remove-Item Env:HACKDIGEST_SELFTEST -ErrorAction SilentlyContinue
           }
 
