@@ -111,6 +111,18 @@ describe('mergeStoredSettings (legacy hosted-provider data compatibility)', () =
     expect(s.shortcuts.listPrev).toBe('k'); // default fills the rest
   });
 
+  it('normalizes a keyless keyring-mode llm so inputs stay controlled', () => {
+    const s = mergeStoredSettings({
+      providerId: 'custom',
+      apiKeyStorage: 'keyring',
+      llm: { baseUrl: 'https://x/v1', model: 'm' }, // no apiKey field: key is in the keyring
+    } as never);
+    expect(s.apiKeyStorage).toBe('keyring');
+    expect(s.llm?.baseUrl).toBe('https://x/v1');
+    expect(s.llm?.apiKey).toBe('');
+    expect(s.llm?.model).toBe('m');
+  });
+
   it('returns defaults for empty input', () => {
     const s = mergeStoredSettings(null);
     expect(s.providerId).toBe('');

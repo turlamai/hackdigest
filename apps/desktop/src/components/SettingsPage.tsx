@@ -8,6 +8,7 @@ import {
   langName,
   testLLM,
   type LLMConfig,
+  setKeyStorageMode,
 } from '@hackdigest/core';
 import { useI18n } from '../i18n';
 import { useSettings, useTrans } from '../state/store';
@@ -81,6 +82,27 @@ export default function SettingsPage() {
       },
     });
     setTestState('idle');
+  };
+
+  // Key custody (issue #2 secure-storage): keyring vs explicit plaintext
+  // opt-out, switched server-side via /api/settings/key-storage.
+  const [keyStorageState, setKeyStorageState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+  const hasSavedKey = Boolean((settings.llm as { hasSavedKey?: boolean } | null)?.hasSavedKey)
+    || settings.apiKeyStorage === 'keyring';
+  const refreshSettings = useSettings.getState().init;
+  const changeKeyStorage = async (mode: 'keyring' | 'plaintext') => {
+    setKeyStorageState('busy');
+    try {
+      await setKeyStorageMode(mode);
+      await refreshSettings();
+      setKeyStorageState('done');
+    } catch {
+      setKeyStorageState('error');
+    }
+  };
+  const clearSavedKey = () => {
+    const { hasSavedKey: _drop, ...cleanLlm } = (settings.llm ?? { baseUrl: '', apiKey: '', model: '' }) as typeof settings.llm & { hasSavedKey?: boolean };
+    patch({ llm: { baseUrl: cleanLlm.baseUrl, apiKey: '', model: cleanLlm.model } });
   };
 
   const runTest = async () => {
@@ -171,6 +193,48 @@ export default function SettingsPage() {
                 autoComplete="off"
               />
             </Row>
+            {settings.providerId !== 'hosted' && (
+              <Row label={t.keyStorageLabel}>
+                <div className="flex items-center gap-2">
+                  {settings.apiKeyStorage === 'keyring' && (
+                    <>
+                      <span className="text-xs text-green-600 dark:text-green-400">{t.keyStorageKeyring}</span>
+                      <button
+                        className="rounded-lg border border-line px-2.5 py-1 text-xs text-mute hover:text-ink disabled:opacity-50"
+                        disabled={keyStorageState === 'busy'}
+                        onClick={() => void changeKeyStorage('plaintext')}
+                      >
+                        {t.keyStorageToPlaintext}
+                      </button>
+                    </>
+                  )}
+                  {settings.apiKeyStorage === 'plaintext-optout' && (
+                    <>
+                      <span className="text-xs text-mute">{t.keyStoragePlaintext}</span>
+                      <button
+                        className="rounded-lg border border-line px-2.5 py-1 text-xs text-mute hover:text-ink disabled:opacity-50"
+                        disabled={keyStorageState === 'busy'}
+                        onClick={() => void changeKeyStorage('keyring')}
+                      >
+                        {t.keyStorageToKeyring}
+                      </button>
+                    </>
+                  )}
+                  {keyStorageState === 'error' && <span className="text-xs text-mute">{t.keyStorageUnavailable}</span>}
+                  {keyStorageState === 'done' && <span className="text-xs text-green-600 dark:text-green-400">{t.keyStorageMoved}</span>}
+                </div>
+              </Row>
+            )}
+            {hasSavedKey && (
+              <Row label="">
+                <button
+                  className="rounded-lg border border-line px-2.5 py-1 text-xs text-mute hover:text-ink"
+                  onClick={() => clearSavedKey()}
+                >
+                  {t.clearSavedKey}
+                </button>
+              </Row>
+            )}
             <Row label={t.autoTranslateTitlesLabel}>
               <button
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium ${settings.autoTranslateTitles ? 'bg-accent text-white' : 'border border-line text-mute hover:text-ink'}`}

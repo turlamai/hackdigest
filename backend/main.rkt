@@ -202,6 +202,12 @@
         json))
    (hasheq 'ok #t)]
 
+  [(POST "api/settings/key-storage")
+   (key-storage [mode GString])
+   (define result (move-key-storage! mode))
+   (hasheq 'mode (storage-mode)
+           'migrated (if (eq? result 'migrated) #t 'null))]
+
   [(POST "api/llm/test")
    (llm-test [cfg hash?])
    (test-llm (resolve-llm-config (jsexpr->cfg cfg)))
@@ -402,6 +408,15 @@
   (set-box! db-box (open-database (app-data-dir)))
   (seed-rollout-bucket!)
   (surface-install-failure!)
+  ;; Move a real plaintext BYOK key into the system keyring (or stamp the
+  ;; explicit plaintext-optout marker when no keyring is available) before
+  ;; any route can read settings. Idempotent; see settings-rpc.rkt.
+  (with-handlers ([exn:fail?
+                   (λ (e)
+                     (eprintf "[hackdigest] key storage migration skipped: ~a\n"
+                              (exn-message e))
+                     (flush-output (current-error-port)))])
+    (migrate-key-storage!))
 
   ;; Transport: native (the page loads from glaze:// and every call rides
   ;; the GLZ1 message handler — no TCP port) is the production shape on
