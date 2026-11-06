@@ -58,6 +58,7 @@
   [struct llm-config ([base-url string?] [api-key string?] [model string?])]
   [llm-error (->* (string?) ((or/c exact-integer? #f)) exn:llm?)]
   [llm-error-status (-> exn:llm? (or/c exact-integer? #f))]
+  [chat-opts-from-jsexpr (-> hash? (values boolean? (or/c exact-integer? #f) real?))]
   [chat-endpoint (-> string? string?)]
   [chat (->* (llm-config? (listof (cons/c symbol? string?)))
              (#:json-mode boolean?
@@ -80,6 +81,18 @@
   (exn:llm message (current-continuation-marks) status))
 
 (define (llm-error-status e) (exn:llm-status e))
+
+;; Page chat opts → (json-mode max-tokens temperature). JSON null arrives
+;; as the 'null symbol (read-json), not #f, so a naive hash-ref passed it
+;; straight into the llm contract and got the route blamed — the page
+;; always sends maxTokens: null for non-cap calls.
+(define (chat-opts-from-jsexpr opts)
+  (define (clean v default) (if (eq? v 'null) default v))
+  (values (clean (hash-ref opts 'jsonMode #f) #f)
+          (let ([mt (clean (hash-ref opts 'maxTokens #f) #f)])
+            (if (and mt (real? mt)) (inexact->exact (truncate mt)) #f))
+          (let ([tp (clean (hash-ref opts 'temperature 0.3) 0.3)])
+            (if (real? tp) tp 0.3))))
 
 ;; "https://host/v1" (+ trailing slashes) → "https://host/v1/chat/completions".
 (define (chat-endpoint base-url)
