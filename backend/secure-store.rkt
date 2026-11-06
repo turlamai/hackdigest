@@ -175,6 +175,11 @@
          (define-cstruct _FILETIME
            ([dwLowDateTime _uint32]
             [dwHighDateTime _uint32]))
+         ;; x64 ABI: the DWORD CredentialBlobSize is followed by a pointer,
+         ;; so the struct needs natural 8-byte alignment — without it the
+         ;; fields after the size sit 4 bytes low and CredWriteW reads
+         ;; garbage pointers (heap corruption, 0xc0000374 at startup, seen
+         ;; live on the Windows VM).
          (define-cstruct _CREDENTIALW
            ([Flags _uint32]
             [Type _uint32]
@@ -187,7 +192,8 @@
             [AttributeCount _uint32]
             [Attributes _pointer]
             [TargetAlias _string/utf-16]
-            [UserName _string/utf-16]))
+            [UserName _string/utf-16])
+           #:alignment 8)
          (define-ffi-definer define-advapi advapi32
            #:default-make-fail make-not-available)
          (define-advapi CredWriteW (_fun _CREDENTIALW-pointer/null _uint32 -> _bool))
