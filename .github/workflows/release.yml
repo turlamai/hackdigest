@@ -847,35 +847,42 @@ jobs:
           $env:GLAZE_API_TOKEN = 'smoke-token'
           $outLog = Join-Path $env:RUNNER_TEMP 'hd-smoke-out.log'
           $errLog = Join-Path $env:RUNNER_TEMP 'hd-smoke-err.log'
-          # Kill every HackDigest process tree and verify it actually left
-          # the OS process table. The .NET Process layer on these runners
-          # has produced false signals in both directions — a stale
-          # "exited, code 0" while the process lives (issue #37: the
-          # selftest instance lingered in exit processing for 4+ minutes
-          # holding the single-instance mutex) and flaky null enumeration —
-          # so the kill goes through taskkill (independent enumeration,
-          # tree kill for the WebView2 children) and the verification
-          # polls the table.
-          function Clear-HackDigest {
-            foreach ($i in 1..20) {
-              $left = Get-Process HackDigest -ErrorAction SilentlyContinue
-              if (-not $left) { return $true }
-              foreach ($p in $left) { taskkill /F /T /PID $p.Id 2>&1 | Out-Null }
-              Start-Sleep -Seconds 1
-            }
-            return -not (Get-Process HackDigest -ErrorAction SilentlyContinue)
-          }
           # The single-instance guard is a session-scoped named kernel
-          # mutex (Local\Glaze-<sha1(app-id)>, glaze #88); its handle lives
-          # until the holder process exits, so any lingering selftest
-          # instance blocks this second launch. Clear and VERIFY before
-          # starting.
-          if (-not (Clear-HackDigest)) {
+          # mutex (Local\Glaze-<sha1(app-id)>, app-id "hackdigest", glaze
+          # #88); its handle lives until the holder's handle table is
+          # destroyed, so only a live holder keeps the object alive.
+          $mutexName = 'Local\Glaze-29303c8537c9016435ac699f0d8cae92f9aacab6'
+          function Test-InstanceMutex {
+            try {
+              $m = [System.Threading.Mutex]::OpenExisting($mutexName)
+              $m.Dispose()
+              return $true
+            } catch { return $false }
+          }
+          # Clear the mutex: kill HackDigest trees with taskkill (it
+          # enumerates independently of the .NET Process layer, which has
+          # produced false "exited" states, flaky null lookups AND kill
+          # calls that never landed on these runners — issue #37) and
+          # probe the mutex itself as the gate. A terminated process can
+          # still linger in the table as a zombie (someone keeps its
+          # process-object handle open) — harmless: its handle table and
+          # the mutex handle are already gone, so the gate is the mutex,
+          # never the table.
+          function Clear-InstanceMutex {
+            foreach ($i in 1..30) {
+              if (-not (Test-InstanceMutex)) { return $true }
+              $procs = Get-Process HackDigest -ErrorAction SilentlyContinue
+              foreach ($p in $procs) { taskkill /F /T /PID $p.Id 2>&1 | Out-Null }
+              Start-Sleep -Seconds 2
+            }
+            return -not (Test-InstanceMutex)
+          }
+          if (-not (Clear-InstanceMutex)) {
             Get-Process |
-              Where-Object { $_.Name -match 'HackDigest|msedgewebview2' } |
+              Where-Object { $_.Name -match 'HackDigest|msedgewebview2|conhost' } |
               Select-Object Id,Name,StartTime,Path |
               Format-Table | Out-String | Write-Host
-            throw 'selftest instance still in the process table after verified cleanup'
+            throw 'single-instance mutex still held after verified cleanup (pre-launch)'
           }
           $proc = $null
           foreach ($attempt in 1..15) {
@@ -918,7 +925,7 @@ jobs:
                 } catch { Write-Host "mutex probe: $($_.Exception.Message)" }
                 Write-Host '::endgroup::'
               }
-              if (-not (Clear-HackDigest)) {
+              if (-not (Clear-InstanceMutex)) {
                 throw 'instance-lock holder survived taskkill /F /T — see the forensics above'
               }
               Start-Sleep -Seconds 5
