@@ -847,16 +847,37 @@ jobs:
           $env:GLAZE_API_TOKEN = 'smoke-token'
           $outLog = Join-Path $env:RUNNER_TEMP 'hd-smoke-out.log'
           $errLog = Join-Path $env:RUNNER_TEMP 'hd-smoke-err.log'
-          # The single-instance TCP lock can outlive the selftest app for a
-          # few seconds (a lingering launcher child or a TIME_WAIT socket on
-          # Windows runners), so clear leftovers and retry on the
-          # "another instance is running" early exit instead of failing the
-          # job (dispatch 42149849769).
-          Get-Process HackDigest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-          Start-Sleep -Seconds 2
+          # Kill every HackDigest process tree and verify it actually left
+          # the OS process table. The .NET Process layer on these runners
+          # has produced false signals in both directions — a stale
+          # "exited, code 0" while the process lives (issue #37: the
+          # selftest instance lingered in exit processing for 4+ minutes
+          # holding the single-instance mutex) and flaky null enumeration —
+          # so the kill goes through taskkill (independent enumeration,
+          # tree kill for the WebView2 children) and the verification
+          # polls the table.
+          function Clear-HackDigest {
+            foreach ($i in 1..20) {
+              $left = Get-Process HackDigest -ErrorAction SilentlyContinue
+              if (-not $left) { return $true }
+              foreach ($p in $left) { taskkill /F /T /PID $p.Id 2>&1 | Out-Null }
+              Start-Sleep -Seconds 1
+            }
+            return -not (Get-Process HackDigest -ErrorAction SilentlyContinue)
+          }
+          # The single-instance guard is a session-scoped named kernel
+          # mutex (Local\Glaze-<sha1(app-id)>, glaze #88); its handle lives
+          # until the holder process exits, so any lingering selftest
+          # instance blocks this second launch. Clear and VERIFY before
+          # starting.
+          if (-not (Clear-HackDigest)) {
+            Get-Process |
+              Where-Object { $_.Name -match 'HackDigest|msedgewebview2' } |
+              Select-Object Id,Name,StartTime,Path |
+              Format-Table | Out-String | Write-Host
+            throw 'selftest instance still in the process table after verified cleanup'
+          }
           $proc = $null
-          # Windows TIME_WAIT holds the bound lock socket for 60-120s after
-          # the selftest exits; span at least three minutes of retries.
           foreach ($attempt in 1..15) {
             $proc = Start-Process -FilePath (Resolve-Path 'dist/HackDigest.exe').Path -PassThru `
               -WorkingDirectory (Resolve-Path 'dist').Path `
@@ -897,8 +918,10 @@ jobs:
                 } catch { Write-Host "mutex probe: $($_.Exception.Message)" }
                 Write-Host '::endgroup::'
               }
-              Get-Process HackDigest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-              Start-Sleep -Seconds 12
+              if (-not (Clear-HackDigest)) {
+                throw 'instance-lock holder survived taskkill /F /T — see the forensics above'
+              }
+              Start-Sleep -Seconds 5
             } else {
               throw "packaged app exited early (exit code $($proc.ExitCode)): $early"
             }
