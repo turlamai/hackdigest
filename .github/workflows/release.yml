@@ -866,6 +866,37 @@ jobs:
             $early = (Get-Content $outLog -ErrorAction SilentlyContinue) -join ' '
             if ($early -match 'another instance is running') {
               Write-Host "attempt ${attempt}: instance lock held; waiting for it to clear"
+              if ($attempt -eq 1) {
+                # Forensics for issue #37: the single-instance mutex is
+                # Local\Glaze-<sha1(app-id)> (app-id "hackdigest", glaze
+                # sys-windows.rkt). Its handle is non-inheritable, so any
+                # holder must have opened it by name — enumerate who, plus
+                # probe the object independently and check ownership.
+                Write-Host '::group::instance-lock forensics'
+                try {
+                  Invoke-WebRequest -UseBasicParsing 'https://live.sysinternals.com/handle.exe' -OutFile "$env:RUNNER_TEMP\handle.exe" -TimeoutSec 60
+                  & "$env:RUNNER_TEMP\handle.exe" -accepteula -nobanner -a Glaze- 2>&1 | Write-Host
+                } catch { Write-Host "handle.exe unavailable: $($_.Exception.Message)" }
+                Get-Process |
+                  Where-Object { $_.Name -match 'HackDigest|msedgewebview2|conhost' } |
+                  Select-Object Id,Name,StartTime,Path |
+                  Format-Table | Out-String | Write-Host
+                try {
+                  $m = [System.Threading.Mutex]::OpenExisting('Local\Glaze-29303c8537c9016435ac699f0d8cae92f9aacab6')
+                  # WaitOne(0) acquiring means no thread owns the mutex (a
+                  # live holder would time out); an abandoned mutex is
+                  # ACQUIRED by the exception path and must be released.
+                  $probe = 'held-by-someone'
+                  try {
+                    if ($m.WaitOne(0)) { $probe = 'exists-unowned'; $m.ReleaseMutex() }
+                  } catch [System.Threading.AbandonedMutexException] {
+                    $probe = 'exists-abandoned'; $m.ReleaseMutex()
+                  }
+                  Write-Host "mutex probe: $probe (independent process view)"
+                  $m.Dispose()
+                } catch { Write-Host "mutex probe: $($_.Exception.Message)" }
+                Write-Host '::endgroup::'
+              }
               Get-Process HackDigest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
               Start-Sleep -Seconds 12
             } else {
