@@ -66,13 +66,27 @@ jobs:
   packaged-native:
     # PR evidence, never a publishing workflow. The tagged release still
     # owns installer creation and the official release artifacts.
-    name: Packaged native GLZ1 (${{ matrix.os }})
+    name: Packaged native GLZ1 (${{ matrix.os }} / ${{ matrix.racket-arch }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
+      # Mirror release.yml's runner/architecture pairs so this per-commit
+      # gate exercises exactly the flavors users receive. Before this
+      # matrix, the macOS leg installed the x86_64 Racket distribution on
+      # an arm64 runner (no architecture: input) and selftested the build
+      # under Rosetta — a flavor users never get — while the shipped
+      # arm64 flavor had no per-commit packaged gate at all (issue #26).
       matrix:
-        os: [ubuntu-24.04, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-24.04
+            racket-arch: x64
+          - os: macos-latest
+            racket-arch: arm64
+          - os: macos-15-intel
+            racket-arch: x64
+          - os: windows-latest
+            racket-arch: x64
     env:
       HACKDIGEST_SELFTEST: '1'
       GLAZE_NO_STARTUP_DIALOG: '1'
@@ -90,6 +104,7 @@ jobs:
         with:
           version: stable
           distribution: full
+          architecture: ${{ matrix.racket-arch }}
       - name: Install pinned Glaze and crypto
         shell: bash
         run: |
