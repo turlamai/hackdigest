@@ -44,7 +44,7 @@
 
 ;; Keep in sync with package.json and CHANGELOG.md; the release workflow's
 ;; validate job fails the tag if they disagree.
-(define app-version "0.3.1")
+(define app-version "0.4.0")
 
 ;; HACKDIGEST_FAKE_VERSION overrides the reported version so the real
 ;; update flow against a published release can be exercised locally.
