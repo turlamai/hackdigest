@@ -203,7 +203,19 @@ jobs:
             sleep 5
           done
           [ -n "$created" ] || { echo "::error::hdiutil create failed after 3 attempts"; exit 1; }
-          hdiutil attach "$dmg" -mountpoint /tmp/hd-dmg-verify -readonly
+          # hdiutil attach fails intermittently with "Resource temporarily
+          # unavailable" on runners (dispatch 42350495926) — retry before
+          # failing the job.
+          attached=""
+          for attempt in 1 2 3; do
+            if hdiutil attach "$dmg" -mountpoint /tmp/hd-dmg-verify -readonly; then
+              attached="yes"
+              break
+            fi
+            echo "hdiutil attach attempt $attempt failed; retrying in 5s"
+            sleep 5
+          done
+          [ -n "$attached" ] || { echo "::error::hdiutil attach failed after 3 attempts"; exit 1; }
           test -d /tmp/hd-dmg-verify/HackDigest.app
           hdiutil detach /tmp/hd-dmg-verify
 
@@ -576,8 +588,18 @@ jobs:
           esac
           asset="appimagetool-$tool_arch.AppImage"
           api_url="https://api.github.com/repos/AppImage/appimagetool/releases/tags/continuous"
-          expected="$(curl -fsSL "$api_url" | jq -r ".assets[] | select(.name == \"$asset\") | .digest" | sed 's/^sha256://')"
-          curl -fsSL -o "$asset" "https://github.com/AppImage/appimagetool/releases/download/continuous/$asset"
+          # The API occasionally answers 403 to anonymous metadata fetches
+          # (observed dispatch 42350495926); retry before failing the job.
+          expected=""
+          for attempt in 1 2 3 4 5; do
+            if expected="$(curl -fsSL --retry 2 "$api_url" | jq -r ".assets[] | select(.name == \"$asset\") | .digest" | sed 's/^sha256://')" && [ -n "$expected" ]; then
+              break
+            fi
+            echo "digest fetch attempt $attempt failed; retrying in 10s"
+            sleep 10
+          done
+          [ -n "$expected" ] || { echo "::error::could not fetch appimagetool digest after 5 attempts"; exit 1; }
+          curl -fsSL --retry 3 -o "$asset" "https://github.com/AppImage/appimagetool/releases/download/continuous/$asset"
           actual="$(sha256sum "$asset" | awk '{print $1}')"
           if [ -z "$expected" ] || [ "$actual" != "$expected" ]; then
             echo "::error::appimagetool checksum mismatch (expected ${expected:-none}, got $actual)"
