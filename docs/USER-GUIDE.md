@@ -10,7 +10,7 @@ All client features are free with your own model key; provider charges apply. Ho
 
 ## Platforms and installation
 
-Desktop previews for macOS, Windows and Linux on Glaze. All three platforms run the native transport by default — HTTP is the explicit dev adapter (`HACKDIGEST_TRANSPORT=http`) — and release CI packaged-native selftests every platform. Secret-storage parity is still pending (#2).
+Desktop previews for macOS, Windows and Linux on Glaze. All three platforms run the native transport by default — HTTP is the explicit dev adapter (`HACKDIGEST_TRANSPORT=http`) — and release CI packaged-native selftests every platform. Model API keys are stored in the system keyring by default (macOS Keychain, Windows Credential Manager, Linux Secret Service), with an explicit plaintext opt-out.
 
 Use [official Releases](https://github.com/turlamai/hackdigest/releases), select an explicitly listed OS/architecture asset, read its release notes and check supplied checksums. An absent asset/platform is not a delivery promise. Preview builds may lack publisher signing or notarization; do not disable system-wide security protections to install them.
 
@@ -22,7 +22,7 @@ Use [official Releases](https://github.com/turlamai/hackdigest/releases), select
 
 ## Data, backup and recovery
 
-Back up local settings/bookmarks and the application data directory after quitting. Translation caches may contain article/comment text; settings can contain secrets until secure-storage migration is verified. Inspect backups before syncing or sharing them.
+Back up local settings/bookmarks and the application data directory after quitting. Translation caches may contain article/comment text; settings contain your API key only if you explicitly opted out of the system keyring. Inspect backups before syncing or sharing them.
 
 ## Network, keys and privacy
 
@@ -30,7 +30,7 @@ Feeds/search contact HN and search services. Translation and summaries send requ
 
 ## Known limits
 
-Secret storage (system secure storage for model API keys) remains tracked in #2; settings can still contain the key until that migration lands. No mobile or hosted-sync service is included.
+If the system keyring is unavailable (for example a locked Linux collection), the app keeps the key in `settings.json` and marks the choice explicitly (`plaintext-optout`) instead of failing silently; Settings shows which storage is active and offers move/opt-out actions. No mobile or hosted-sync service is included.
 
 ## Updates and removal
 

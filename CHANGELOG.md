@@ -5,7 +5,7 @@ All notable changes to HackDigest are documented here. Format follows
 semver. The Tauri line's history (v0.1.0–v0.5.1) lives in git history; its
 releases and tags were withdrawn.
 
-## [Unreleased]
+## 0.4.0 - 2026-11-08
 
 ### Added
 
@@ -19,6 +19,17 @@ releases and tags were withdrawn.
 - Remove the superseded hosted config surface (issue #2 free-product gate check): the "HackDigest Pro（托管）" provider preset, license-key activation, device-bound 7-day trial, and the trial/lifetime/pro quota panel are gone while hosted remains not on sale, per the `2026-10-v2` pricing decision and the `2026-10-auth-1` authorization decision (account-bound entitlements, no desktop activation lease, no per-device trials). Legacy settings with `providerId: "hosted"` remap on load to a working custom endpoint (same base URL / key / model; cached `hostedStatus` dropped), and the auto-translate toggles that were stranded inside the hosted-only settings branch are now visible for every provider. `raco` backend untouched: the settings mask exception for legacy hosted keys stays until secure-storage migration.
 - Native transport is the default on all three platforms — the packaged-native switch of the Glaze 1.0-plan G4 cycle closes the consumer transport gap (#2). `HACKDIGEST_TRANSPORT=http` remains the explicit development adapter; `GLAZE_API_TOKEN` applies to that adapter only. CI and release installs now pin Glaze at the main head that carries the G4 native-host conformance matrix (flip to the next tagged release when it exists).
 
+
+### Fixed
+
+- The key-storage route returned `migrated: null` for both no-op and refusal, so the settings page could show a fake success on machines with a locked or missing keyring; it now raises a user error the page can render.
+- Every page-initiated non-streaming chat failed with an llm-contract internal error: the page always sent `maxTokens: null`, which arrived as the `'null` symbol and violated the contract; `chat-opts-from-jsexpr` now centralizes null-safe option parsing for both chat routes.
+
+### Release infrastructure
+
+- The CI packaged-native matrix now mirrors the shipped macOS flavors natively (arm64 on `macos-latest`, x64 on `macos-15-intel`) instead of selftesting an x86_64 build under Rosetta — the per-commit gate now exercises the flavors users actually receive.
+- The Windows HTTP-adapter smoke runs on a fresh runner: the selftest instance can wedge mid-exit on GitHub runners (GPU-less teardown hang, filed upstream as glaze#124) and keep the single-instance mutex alive for minutes, which no cleanup script can reliably beat. The mutex-gated cleanup (`taskkill /F /T` + `Mutex.OpenExisting` probes) stays in the smoke's retry loop as defense.
+- Transient-failure retries for the DMG `hdiutil attach` verification and the appimagetool digest fetch.
 
 ## 0.3.1 - 2026-10-14
 
