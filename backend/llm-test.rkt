@@ -4,6 +4,7 @@
 ;; llm.ts, and streaming end-to-end against a loopback mock server.
 
 (require json
+         racket/async-channel
          racket/format
          racket/list
          racket/port
@@ -221,3 +222,127 @@
   (check-equal? jm #f)
   (check-equal? mt #f)
   (check-equal? tp 0.3))
+
+;; ---- keep-alive server regression (issue #40) ------------------------------
+;;
+;; The hosted-Pro gate was blocked on a reported misframe against a
+;; "keep-alive local mock" (garbled request paths + a net/http-conn contract
+;; violation after repeated /api/translate/titles batches). llm.rkt cannot
+;; misframe a persistent connection: every chat-once opens a fresh
+;; http-conn, and Racket's http-conn-send! sends `Connection: close` unless
+;; the caller passes its own Connection header — so there is no persistent
+;; connection to misframe, and the old observation was an artifact of the
+;; ad-hoc mock used that day (its 2026-11-08 re-run reproduced nothing:
+;; 200/200 clean batches against a strict server, and paths stayed intact
+;; even against a deliberately body-ignoring one).
+;;
+;; This regression locks in the property that matters: under a real
+;; HTTP/1.1 keep-alive server (requests and responses framed strictly by
+;; Content-Length, connections held open), 30 sequential titles batches
+;; arrive fully framed — every request line parses, every body matches its
+;; Content-Length, zero server-side parse failures — and every client call
+;; gets its answer.
+
+(define keepalive-batches 30)
+
+;; Strict keep-alive mock: accept loop spawns a per-connection serve loop
+;; that responds to requests until EOF, keeping the connection open
+;; (Connection: keep-alive) and reading bodies strictly by Content-Length.
+;; Counters are the output-side assertions: seen == expected requests,
+;; parse-failures == 0.
+(define (with-keepalive-mock! expected-batches proc)
+  (define-values (listener port) (listen-free-port!))
+  (define seen (box 0))
+  (define parse-failures (box 0))
+  (define (serve-connection! in out)
+    (let loop ()
+      (define line (read-line in 'any))
+      (unless (eof-object? line)
+        (define path line)
+        (let headers-loop ([content-length 0])
+          (define h (read-line in 'any))
+          (cond
+            [(eof-object? h) (void)]
+            [(string=? h "")
+             (define body (if (> content-length 0) (read-bytes content-length in) #""))
+             (set-box! seen (add1 (unbox seen)))
+             (define ok-request?
+               (and (regexp-match? #px"^POST /v1/chat/completions .*$" path)
+                    (= (bytes-length body) content-length)
+                    (with-handlers ([exn:fail? (lambda (_) #f)])
+                      (hash? (read-json (open-input-bytes body))))))
+             (unless ok-request? (set-box! parse-failures (add1 (unbox parse-failures))))
+             ;; The model output is a JSON *string*; build the two levels
+             ;; as literals because jsexpr keys are symbols, not strings.
+             (define content "{\"t\":{\"123\":\"translated title\"}}")
+             (define body-out
+               (jsexpr->string
+                (hasheq 'choices (list (hasheq 'message (hasheq 'content content))))))
+             (write-bytes
+              (bytes-append #"HTTP/1.1 200 OK\r\n"
+                            #"Content-Type: application/json\r\n"
+                            #"Content-Length: "
+                            (string->bytes/utf-8 (~v (string-length body-out)))
+                            #"\r\nConnection: keep-alive\r\n\r\n"
+                            (string->bytes/utf-8 body-out))
+              out)
+             (flush-output out)
+             (loop)]
+            [else
+             (define m (regexp-match #px"(?i:content-length:\\s*)(\\d+)" h))
+             (headers-loop (if m (string->number (second m)) content-length))])))))
+  (define server-thread
+    (thread
+     (lambda ()
+       (let accept-loop ()
+         (define-values (in out) (tcp-accept listener))
+         (thread (lambda ()
+                   (with-handlers ([exn:fail? void])
+                     (serve-connection! in out))
+                   (close-input-port in)
+                   (close-output-port out)))
+         (accept-loop))))
+    #|thread|#)
+  (dynamic-wind
+    void
+    (lambda ()
+      (sleep 0.05)
+      ;; Surface proc failures instead of letting the worker thread die
+      ;; silently: sync/timeout on a thread object returns just the same on
+      ;; an exceptional death, and the swallowed error used to show up only
+      ;; as a confusing seen-count mismatch.
+      (define done (make-async-channel))
+      (define result-thread
+        (thread
+         (lambda ()
+           (async-channel-put
+            done
+            (with-handlers ([exn? (lambda (e) e)])
+              (cons 'ok
+                    (proc (llm-config (~a "http://127.0.0.1:" port "/v1")
+                                      "sk-test"
+                                      "test-model"))))))))
+      (define r (sync/timeout 30 done))
+      (cond
+        [(not r)
+         (kill-thread result-thread)
+         (fail "keep-alive mock test timed out after 30s")]
+        [(exn? r) (raise r)]
+        [else (cdr r)]))
+    (lambda ()
+      (tcp-close listener)
+      (kill-thread server-thread)))
+  (check-equal? (unbox seen) expected-batches "mock saw every request")
+  (check-equal? (unbox parse-failures) 0 "every request framed and parsed cleanly"))
+
+(test-case "30 sequential titles batches stay framed against a keep-alive server"
+  (with-keepalive-mock!
+   keepalive-batches
+   (lambda (cfg)
+     (define msgs
+       (list (cons 'system "You translate titles. Return JSON {\"t\":{...}}.")
+             (cons 'user "[123] Some Title To Translate")))
+     (for ([i (in-range keepalive-batches)])
+       (check-equal?
+        (chat cfg msgs #:json-mode #t #:max-tokens 4000)
+        "{\"t\":{\"123\":\"translated title\"}}")))))
