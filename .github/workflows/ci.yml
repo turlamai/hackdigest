@@ -217,3 +217,14 @@ jobs:
           name: native-smoke-${{ matrix.os }}-${{ github.sha }}
           path: ${{ runner.temp }}/native-smoke*.log
           if-no-files-found: warn
+      # Test-branch-only evidence upload: the staged packaged build is handed
+      # to the family Windows VM for out-of-CI verification of the v0.18.0
+      # pin (per-process WebView2 data folders are the largest Windows delta).
+      # Not a publishing workflow; must not merge to main.
+      - name: Upload packaged build for VM verification
+        if: success() && runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-dist-${{ matrix.os }}-${{ github.sha }}
+          path: dist/
+          retention-days: 3
