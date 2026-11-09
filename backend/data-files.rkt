@@ -27,7 +27,23 @@
 
 (define (read-data-file name)
   (define path (data-file-path name))
-  (and (file-exists? path) (file->string path)))
+  (and (file-exists? path)
+       (let* ([b (file->bytes path)]
+              ;; BOM-emitting editors (PowerShell 5.1 Set-Content -Encoding
+              ;; UTF8, legacy Notepad saves) prefix settings with EF BB BF;
+              ;; read-json throws on the U+FEFF and every consumer's error
+              ;; handler then treated the file as empty — the user's whole
+              ;; configuration silently vanished (issue #47). Strip the BOM
+              ;; once at this single read choke point so settings and
+              ;; library both survive it, and say so for diagnosability.
+              [has-bom? (and (>= (bytes-length b) 3)
+                             (equal? (subbytes b 0 3) #"ï»¿"))]
+              [clean (if has-bom? (subbytes b 3) b)])
+         (when has-bom?
+           (eprintf "[data-files] stripped a UTF-8 BOM from ~a
+" path)
+           (flush-output (current-error-port)))
+         (bytes->string/utf-8 clean))))
 
 (define (write-data-file name json)
   (define path (data-file-path name))
