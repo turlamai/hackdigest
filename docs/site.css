@@ -1,0 +1,270 @@
+/* ============================================================
+   HackDigest site.css — per-site sections only.
+   Shared frame (nav, hero, cards, footer, tokens) lives in
+   family.css from site-kit; do not duplicate it here.
+   ============================================================ */
+
+/* ---------- Brand mark: letter tile ---------- */
+.brand-h {
+    display: grid;
+    place-items: center;
+    background: var(--kit-accent);
+    color: var(--kit-on-accent);
+    font-weight: 700;
+    font-size: 13px;
+    font-family: var(--kit-font-mono);
+}
+
+/* ---------- Hero mock: app window with translated comment ---------- */
+.hero-mock {
+    margin-top: 64px;
+    display: flex;
+    justify-content: center;
+}
+.mock-window {
+    width: min(560px, 100%);
+    background: var(--kit-bg-elevated);
+    border: 1px solid var(--kit-border);
+    border-radius: var(--kit-radius-l);
+    box-shadow: var(--kit-shadow-lift);
+    overflow: hidden;
+    font-size: 12px;
+    text-align: left;
+}
+.mock-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    background: var(--kit-surface);
+    border-bottom: 1px solid var(--kit-border);
+}
+.mock-titlebar i { width: 10px; height: 10px; border-radius: 50%; background: var(--kit-border-strong); }
+.mock-titlebar span { margin-left: 8px; font-size: 11px; color: var(--kit-text-3); }
+.mock-body { display: flex; min-height: 280px; }
+.mock-sidebar {
+    width: 96px;
+    border-right: 1px solid var(--kit-border);
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.mock-side-item { padding: 5px 8px; border-radius: 7px; color: var(--kit-text-2); }
+.mock-side-item.active {
+    background: var(--kit-accent-soft);
+    color: var(--kit-accent-strong);
+    font-weight: 600;
+}
+html[data-theme="dark"] .mock-side-item.active { color: var(--kit-accent); }
+.mock-main { flex: 1; padding: 14px; min-width: 0; }
+.mock-row { display: flex; gap: 8px; padding: 8px 6px; }
+.mock-rank { color: var(--kit-text-3); }
+.mock-title-zh { font-weight: 600; font-size: 13px; }
+.mock-meta { font-size: 11px; color: var(--kit-text-3); margin-top: 2px; }
+.mock-comment { margin: 12px 6px 0; border-left: 2px solid var(--kit-border); padding-left: 12px; }
+.mock-comment-meta { font-size: 11px; color: var(--kit-text-3); }
+.mock-comment-en {
+    margin-top: 4px;
+    color: var(--kit-text-2);
+    font-style: italic;
+    font-family: var(--kit-font-display);
+}
+.mock-comment-zh { margin-top: 4px; color: var(--kit-accent-strong); font-weight: 500; }
+html[data-theme="dark"] .mock-comment-zh { color: var(--kit-accent); }
+.mock-digest {
+    margin: 14px 6px 4px;
+    background: var(--kit-accent-soft);
+    border: 1px solid var(--kit-accent-soft-strong);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+.mock-digest-badge { font-size: 11px; font-weight: 600; color: var(--kit-accent-strong); }
+html[data-theme="dark"] .mock-digest-badge { color: var(--kit-accent); }
+.mock-digest-line { height: 6px; border-radius: 3px; background: var(--kit-accent-soft-strong); margin-top: 8px; }
+.mock-digest-line.short { width: 62%; }
+@media (max-width: 560px) {
+    .mock-sidebar { display: none; }
+    .mock-body { min-height: 220px; }
+}
+
+/* ---------- Visual Showcase: input/output boards ---------- */
+.vs-intro { margin-bottom: 40px; }
+.vs-label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--kit-accent-strong);
+    margin-bottom: 14px;
+}
+html[data-theme="dark"] .vs-label { color: var(--kit-accent); }
+.vs-frame {
+    background: var(--kit-bg);
+    border: 1px solid var(--kit-border);
+    border-radius: var(--kit-radius-l);
+    padding: clamp(18px, 3vw, 34px);
+    box-shadow: var(--kit-shadow);
+    overflow: hidden;
+}
+.vs-task-art {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+    margin-bottom: 22px;
+    background: none;
+    border: none;
+    padding: 0;
+}
+.vs-mini-board {
+    background: var(--kit-bg-elevated);
+    border-radius: 14px;
+    border: 1px solid var(--kit-border);
+    padding: 15px;
+    box-shadow: var(--kit-shadow);
+}
+.vs-mini-title {
+    font-size: 0.76rem;
+    color: var(--kit-text-2);
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+.vs-mini-task {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 3px;
+    border-top: 1px solid var(--kit-border);
+    font-size: 0.9rem;
+}
+.vs-ring {
+    flex: none;
+    height: 17px;
+    width: 17px;
+    border: 2px solid var(--kit-accent);
+    border-radius: 50%;
+}
+.vs-stage {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+.vs-step {
+    position: relative;
+    min-height: 140px;
+    padding: 22px 18px;
+    border-radius: var(--kit-radius-l);
+    background: var(--kit-bg-elevated);
+    border: 1px solid var(--kit-border);
+}
+.vs-step:not(:last-child)::after {
+    content: "→";
+    position: absolute;
+    z-index: 1;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--kit-bg-elevated);
+    color: var(--kit-accent-strong);
+    border: 1px solid var(--kit-border);
+}
+html[data-theme="dark"] .vs-step:not(:last-child)::after { color: var(--kit-accent); }
+.vs-glyph {
+    font-size: 1.75rem;
+    display: block;
+    margin-bottom: 16px;
+    color: var(--kit-accent-strong);
+}
+html[data-theme="dark"] .vs-glyph { color: var(--kit-accent); }
+.vs-step b { display: block; font-size: 1.03rem; margin-bottom: 7px; }
+.vs-step small { display: block; color: var(--kit-text-2); font-size: 0.84rem; line-height: 1.5; }
+.vs-caption {
+    font-size: 12.5px;
+    text-align: center;
+    margin: 16px 0 0;
+    color: var(--kit-text-3);
+}
+@media (max-width: 700px) {
+    .vs-task-art { grid-template-columns: 1fr; }
+    .vs-stage { grid-template-columns: 1fr; }
+    .vs-step { min-height: 110px; }
+    .vs-step:not(:last-child)::after {
+        right: auto;
+        left: 50%;
+        top: auto;
+        bottom: -15px;
+        transform: translateX(-50%) rotate(90deg);
+    }
+    .vs-glyph { margin-bottom: 12px; }
+}
+
+/* ---------- Digest cards: featured middle card keeps its tint ---------- */
+.digest-card.featured {
+    border-color: var(--kit-accent-soft-strong);
+    background: linear-gradient(170deg, var(--kit-bg-elevated) 0%, var(--kit-accent-soft) 100%);
+}
+
+/* ---------- Download cards ---------- */
+.dl-card { color: var(--kit-text); }
+.dl-card:hover { color: var(--kit-text); }
+.dl-hint { margin-top: 6px; font-size: 13px; color: var(--kit-text-2); overflow-wrap: anywhere; }
+.dl-all { margin-top: 26px; text-align: center; }
+.dl-all a {
+    color: var(--kit-accent-strong);
+    font-weight: 600;
+    font-size: 14.5px;
+}
+html[data-theme="dark"] .dl-all a { color: var(--kit-accent); }
+.dl-all a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Start-here extras ---------- */
+.start-limits {
+    margin-top: 30px;
+    font-size: 14px;
+    line-height: 1.65;
+    max-width: 74ch;
+}
+.start-limits a {
+    color: var(--kit-accent-strong);
+    font-weight: 600;
+}
+html[data-theme="dark"] .start-limits a { color: var(--kit-accent); }
+.start-limits a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.start-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 26px;
+    margin-top: 20px;
+}
+.start-links a {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--kit-accent-strong);
+}
+html[data-theme="dark"] .start-links a { color: var(--kit-accent); }
+.start-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Support bar (below footer) ---------- */
+#product-support {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 28px;
+    padding: 22px 24px;
+    background: var(--kit-bg-elevated);
+    border-top: 1px solid var(--kit-border);
+    font-size: 13.5px;
+}
+#product-support a { color: var(--kit-text-2); }
+#product-support a:hover { color: var(--kit-accent); }
+
+/* ---------- Icon visibility per theme ---------- */
+html[data-theme="light"] .kit-icon-moon { display: none; }
+html[data-theme="dark"] .kit-icon-sun { display: none; }
