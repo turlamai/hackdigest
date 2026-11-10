@@ -133,6 +133,18 @@ const zh = {
   skHint: '点击键位后按一个新键即可更改（字母或数字，可配合 Shift）；↑↓/Enter/← 与 1-6、/、? 为固定键。',
   skFixed: '固定键（不可更改）',
   skConflict: '{key} 已被「{action}」占用',
+  sectionFeeds: '信息流',
+  sectionLibrary: '收藏库',
+  translatePage: '翻译本页',
+  updatedAt: '更新于 {time}',
+  statusReady: '翻译服务已连接',
+  statusNoLlm: '未配置翻译服务',
+  hintSelect: '选择',
+  hintOpen: '打开',
+  hintTranslate: '翻译',
+  hintBookmark: '收藏',
+  hintRefresh: '刷新',
+  hintBack: '返回',
 };
 
 const en: typeof zh = {
@@ -265,6 +277,18 @@ const en: typeof zh = {
   skHint: 'Click a key then press a new one (letter/digit, Shift allowed). Arrow keys, Enter, 1-6, / and ? are fixed.',
   skFixed: 'Fixed keys',
   skConflict: "{key} is already used by '{action}'",
+  sectionFeeds: 'Feeds',
+  sectionLibrary: 'Library',
+  translatePage: 'Translate page',
+  updatedAt: 'Updated {time}',
+  statusReady: 'Translator connected',
+  statusNoLlm: 'No translator set up',
+  hintSelect: 'Select',
+  hintOpen: 'Open',
+  hintTranslate: 'Translate',
+  hintBookmark: 'Bookmark',
+  hintRefresh: 'Refresh',
+  hintBack: 'Back',
 };
 
 const dicts = { zh, en };

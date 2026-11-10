@@ -1,15 +1,12 @@
-import { useState } from 'react';
 import type { FeedId } from '@hackdigest/core';
 import { useUI, useSettings } from '../state/store';
 import { useI18n } from '../i18n';
 import {
-  IconSearch,
   IconStar,
   IconNewspaper,
   IconSettings,
   IconSun,
   IconMoon,
-  IconRefresh,
 } from './icons';
 
 const FEEDS: FeedId[] = ['top', 'new', 'best', 'ask', 'show', 'job'];
@@ -20,7 +17,6 @@ export default function Sidebar() {
   const navigate = useUI((s) => s.navigate);
   const settings = useSettings((s) => s.settings);
   const patch = useSettings((s) => s.patch);
-  const [query, setQuery] = useState('');
 
   const dark = settings.theme === 'dark';
   // Native buttons: every destination is keyboard reachable (Tab) and
@@ -28,56 +24,49 @@ export default function Sidebar() {
   // in both languages. aria-current marks the active destination for
   // assistive tech instead of relying on the color change alone.
   const itemCls = (active: boolean) =>
-    `flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent ${
-      active ? 'bg-accentsoft text-accent font-medium' : 'text-ink/75 hover:bg-raised'
+    `flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-sm text-left transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent ${
+      active
+        ? 'bg-raised font-semibold text-ink shadow-[inset_2px_0_0_0_var(--accent)]'
+        : 'text-ink/75 hover:bg-raised'
+    }`;
+  // Feed numbers mirror the fixed 1-6 feed-switch keys (see App.tsx).
+  const numCls = (active: boolean) =>
+    `grid h-4 w-4 shrink-0 place-items-center rounded-sm border text-[10.5px] tabular-nums ${
+      active ? 'border-accentsoft bg-accentsoft text-accent' : 'border-line bg-raised text-mute'
     }`;
 
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-line bg-surface">
-      <div className="flex items-center gap-2 px-4 pt-4 pb-3">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
+    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-line bg-surface px-2.5 pt-3">
+      <div className="flex items-center gap-2 px-2 pb-3">
+        <div className="grid h-[22px] w-[22px] shrink-0 place-items-center rounded-md bg-accent text-xs font-bold text-white">
           H
         </div>
-        <div className="text-[15px] font-semibold tracking-tight">HackDigest</div>
+        <div className="text-[14.5px] font-bold tracking-tight">HackDigest</div>
       </div>
 
-      <form
-        className="px-3 pb-3"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (query.trim()) navigate({ type: 'search', query: query.trim() });
-        }}
-      >
-        <div className="flex items-center gap-2 rounded-lg bg-raised px-2.5 py-1.5 text-sm text-mute focus-within:ring-1 focus-within:ring-accent/50">
-          <IconSearch className="shrink-0" width={14} height={14} />
-          <input
-            id="global-search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t.searchPlaceholder}
-            className="w-full bg-transparent text-ink outline-none placeholder:text-mute"
-          />
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-0.5" aria-label={t.sectionFeeds}>
+        <div className="px-2 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wider text-mute">
+          {t.sectionFeeds}
         </div>
-      </form>
+        {FEEDS.map((f, i) => {
+          const active = view.type === 'feed' && view.feed === f;
+          return (
+            <button
+              key={f}
+              type="button"
+              className={itemCls(active)}
+              aria-current={active ? 'page' : undefined}
+              onClick={() => navigate({ type: 'feed', feed: f })}
+            >
+              <span className={numCls(active)}>{i + 1}</span>
+              {t.feeds[f]}
+            </button>
+          );
+        })}
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3">
-        <div className="px-3 pb-1 pt-1 text-[11px] font-medium uppercase tracking-wider text-mute">
-          {t.feeds.top}
+        <div className="px-2 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-wider text-mute">
+          {t.sectionLibrary}
         </div>
-        {FEEDS.map((f) => (
-          <button
-            key={f}
-            type="button"
-            className={itemCls(view.type === 'feed' && view.feed === f)}
-            aria-current={view.type === 'feed' && view.feed === f ? 'page' : undefined}
-            onClick={() => navigate({ type: 'feed', feed: f })}
-          >
-            <span className="w-3.5 text-center text-mute">{f === 'top' ? '▲' : f === 'new' ? '✦' : f === 'best' ? '★' : f === 'ask' ? '?' : f === 'show' ? '◆' : '▪'}</span>
-            {t.feeds[f]}
-          </button>
-        ))}
-
-        <div className="mt-3 border-t border-line pt-2" />
         <button
           type="button"
           className={itemCls(view.type === 'daily')}
@@ -98,7 +87,7 @@ export default function Sidebar() {
         </button>
       </nav>
 
-      <div className="space-y-0.5 border-t border-line px-3 py-2">
+      <div className="space-y-0.5 border-t border-line pb-2 pt-2">
         <button type="button" className={itemCls(false)} onClick={() => patch({ theme: dark ? 'light' : 'dark' })}>
           {dark ? <IconSun width={14} height={14} /> : <IconMoon width={14} height={14} />}
           {dark ? t.themeLight : t.themeDark}
@@ -112,7 +101,11 @@ export default function Sidebar() {
           <IconSettings width={14} height={14} />
           {t.settings}
         </button>
-        <div className="px-3 pt-1 text-[11px] text-mute/70">{t.footer}</div>
+        <div className="flex items-center gap-2 px-2.5 pt-1.5">
+          <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${settings.llm ? 'bg-[#28c840]' : 'bg-line'}`} />
+          <span className="truncate text-xs text-mute">{settings.llm ? t.statusReady : t.statusNoLlm}</span>
+        </div>
+        <div className="px-2.5 pt-0.5 text-[11px] text-mute/70">{t.footer}</div>
       </div>
     </aside>
   );

@@ -95,6 +95,12 @@ export const IconRefresh = (p: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconComment = (p: React.SVGProps<SVGSVGElement>) => (
+  <svg {...base} {...p}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
 export const IconNewspaper = (p: React.SVGProps<SVGSVGElement>) => (
   <svg {...base} {...p}>
     <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0V9" />

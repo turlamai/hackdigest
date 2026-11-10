@@ -1,7 +1,7 @@
 // Feed page: ranked list with progressive item loading + infinite scroll.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { fetchFeedIds, fetchItems, type FeedId, type HNItem } from '@hackdigest/core';
+import { fetchFeedIds, fetchItems, timeAgo, type FeedId, type HNItem } from '@hackdigest/core';
 import { useI18n } from '../i18n';
 import { useUI } from '../state/store';
 import { useSentinel } from '../lib/hooks';
@@ -10,12 +10,12 @@ import { translateStory, translateTitles } from '@hackdigest/core';
 import { useSettings, useTrans } from '../state/store';
 import { listBookmarks, listReadIds, toggleBookmark, type BookmarkEntry } from '../lib/bookmarks';
 import StoryRow from './StoryRow';
-import { IconRefresh } from './icons';
+import { IconRefresh, IconSearch, IconTranslate } from './icons';
 
 const PAGE = 30;
 
 export default function StoryList({ feed, active = true }: { feed: FeedId; active?: boolean }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [ids, setIds] = useState<number[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [visible, setVisible] = useState(PAGE);
@@ -24,6 +24,9 @@ export default function StoryList({ feed, active = true }: { feed: FeedId; activ
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [tick, setTick] = useState(0);
   const [sel, setSel] = useState(0);
+  const [query, setQuery] = useState('');
+  const [lastLoaded, setLastLoaded] = useState<number | null>(null);
+  const [busyTitles, setBusyTitles] = useState(false);
   const llm = useSettings((st) => st.settings.llm);
   const sc = useSettings((st) => st.settings.shortcuts);
   const autoTitles = useSettings((st) => st.settings.autoTranslateTitles);
@@ -40,7 +43,12 @@ export default function StoryList({ feed, active = true }: { feed: FeedId; activ
     listReadIds().then((s) => alive && setReadIds(s));
     listBookmarks().then((b) => alive && setBookmarks(new Set(b.map((e) => e.id))));
     fetchFeedIds(feed)
-      .then((r) => alive && setIds(r))
+      .then((r) => {
+        if (alive) {
+          setIds(r);
+          setLastLoaded(Date.now() / 1000);
+        }
+      })
       .catch((e: Error) => alive && setError(e));
     return () => {
       alive = false;
@@ -111,6 +119,23 @@ export default function StoryList({ feed, active = true }: { feed: FeedId; activ
     !!ids && visible < (ids?.length ?? 0)
   );
 
+  // Header button: batch-translate every visible title through the same
+  // pipeline the auto-translate effect uses (one request per 30 rows).
+  const translateVisible = async () => {
+    if (!llm) return navigate({ type: 'settings' });
+    if (busyTitles) return;
+    setBusyTitles(true);
+    try {
+      await translateTitles(llm, items, target, (results) => {
+        for (const [id, title] of results) put(id, { title });
+      });
+    } catch {
+      /* rows keep English — per-row `t` still works */
+    } finally {
+      setBusyTitles(false);
+    }
+  };
+
   // Keyboard continuity across detail/back: when the list becomes visible
   // again, put focus on the selected row (rows are programmatic targets,
   // not tab stops — j/k/Enter remain the list's keyboard interface).
@@ -141,16 +166,51 @@ export default function StoryList({ feed, active = true }: { feed: FeedId; activ
   if (!ids) return <div className="p-8 text-center text-mute">{t.loading}</div>;
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-bg/85 px-5 py-2.5 backdrop-blur">
-        <div className="text-sm font-semibold">{t.feeds[feed]}</div>
-        <button
-          className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-mute hover:bg-raised hover:text-ink"
-          onClick={() => setTick((x) => x + 1)}
-        >
-          <IconRefresh width={13} height={13} />
-          {t.refresh}
-        </button>
+    <div>
+      <div className="sticky top-0 z-10 border-b border-line bg-bg/90 px-5 py-3 backdrop-blur">
+        <div className="flex items-center gap-3">
+          <h1 className="text-[17px] font-bold leading-tight">{t.feeds[feed]}</h1>
+          {lastLoaded != null && (
+            <div className="truncate text-xs text-mute">
+              {t.updatedAt.replace('{time}', timeAgo(lastLoaded, lang))}
+            </div>
+          )}
+          <div className="flex-1" />
+          <div className="flex h-[30px] w-60 items-center gap-2 rounded-md border border-line bg-surface px-2.5 text-[13px] text-mute focus-within:ring-1 focus-within:ring-accent/50">
+            <IconSearch width={13} height={13} className="shrink-0" />
+            <input
+              id="global-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && query.trim()) {
+                  navigate({ type: 'search', query: query.trim() });
+                  setQuery('');
+                }
+              }}
+              placeholder={t.searchPlaceholder}
+              className="w-full bg-transparent text-ink outline-none placeholder:text-mute"
+            />
+          </div>
+          <button
+            className="flex h-[30px] items-center gap-1.5 rounded-md border border-line bg-surface px-3 text-xs font-semibold text-ink hover:bg-raised"
+            onClick={() => setTick((x) => x + 1)}
+          >
+            <IconRefresh width={13} height={13} />
+            {t.refresh}
+          </button>
+          <button
+            className={`flex h-[30px] items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-colors ${
+              busyTitles
+                ? 'border-line bg-raised text-mute'
+                : 'border-transparent bg-accentsoft text-accent hover:bg-accentsoft/70'
+            }`}
+            onClick={() => void translateVisible()}
+          >
+            <IconTranslate className={busyTitles ? 'animate-spin' : ''} width={13} height={13} />
+            {busyTitles ? `${t.translating}…` : t.translatePage}
+          </button>
+        </div>
       </div>
       {items.map((item, i) => (
         <StoryRow

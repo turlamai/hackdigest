@@ -11,6 +11,7 @@ import SettingsPage from './components/SettingsPage';
 import UpdateBanner, { useStartupUpdateCheck } from './components/UpdateBanner';
 import ToastHost from './components/Toast';
 import ShortcutsOverlay from './components/ShortcutsOverlay';
+import StatusBar from './components/StatusBar';
 import { isTypingTarget } from './lib/keys';
 
 const FEED_KEYS: Array<'top' | 'new' | 'best' | 'ask' | 'show' | 'job'> = ['top', 'new', 'best', 'ask', 'show', 'job'];
@@ -80,8 +81,8 @@ export default function App() {
       {update && !bannerDismissed && <UpdateBanner update={update} onClose={() => setBannerDismissed(true)} />}
       <div className="flex min-h-0 flex-1">
         <Sidebar />
-        <main className="h-full flex-1 overflow-hidden">
-          <div className="relative h-full">
+        <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="relative min-h-0 flex-1">
             {feedMounted && (
               <div
                 className={`absolute inset-0 overflow-y-auto ${viewIsFeed ? '' : 'invisible'}`}
@@ -116,6 +117,7 @@ export default function App() {
               </div>
             )}
           </div>
+          <StatusBar />
         </main>
       </div>
       {showShortcuts && <ShortcutsOverlay onClose={() => setShowShortcuts(false)} />}
