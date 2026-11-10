@@ -86,27 +86,46 @@ jobs:
           # window instead of sleeping a fixed few seconds.
           DISPLAY=:99 flatpak run \
             --env=WEBKIT_DISABLE_DMABUF_RENDERER=1 --env=LIBGL_ALWAYS_SOFTWARE=1 \
-            site.jrtx.hackdigest > app-run.log 2>&1 & run_pid=$!
+            site.jrtx.hackdigest > app-run.log 2>&1 &
           for _ in $(seq 1 20); do
             flatpak ps --columns=application | grep -q site.jrtx.hackdigest && break
             sleep 1
           done
-          # The sandboxed process is alive under its own instance.
+          # The sandboxed process is alive under its own instance. (flatpak
+          # run's CLI detaches on non-tty output, so the shell's $! is NOT
+          # a liveness signal — flatpak ps is.)
           flatpak ps --columns=application | grep site.jrtx.hackdigest
           # The window mapped on the display and the embedded backend
           # booted (the GLZ1 runtime layout resolves through
-          # /proc/self/exe inside the sandbox).
+          # /proc/self/exe inside the sandbox). WebKit's cold-sandbox
+          # first paint (user-dir bootstrap, software GL init, the startup
+          # update check) takes tens of seconds on a runner — poll.
           window=""
-          for _ in $(seq 1 30); do
+          for _ in $(seq 1 45); do
             if DISPLAY=:99 xwininfo -root -tree 2>/dev/null | grep -qi hackdigest; then
               window="yes"
               break
             fi
-            kill -0 "$run_pid" 2>/dev/null || { echo "::error::sandboxed app exited early"; tail -20 app-run.log || true; exit 1; }
+            flatpak ps --columns=application | grep -q site.jrtx.hackdigest \
+              || { echo "::error::sandboxed app instance is gone"; break; }
             sleep 2
           done
-          [ -n "$window" ] || { echo "::error::no HackDigest window on the display; app log:"; tail -40 app-run.log || true; exit 1; }
-          kill "$run_pid" 2>/dev/null || pkill -f site.jrtx.hackdigest || true
+          [ -n "$window" ] || {
+            echo "::error::no HackDigest window on the display after 90s"
+            echo "::group::app output ($(wc -c < app-run.log 2>/dev/null || echo 0) bytes)"
+            cat app-run.log || true
+            echo "::endgroup::"
+            echo "::group::sandbox probe (ls /app via the bundle)"
+            timeout 20 env DISPLAY=:99 flatpak run --command=ls \
+              site.jrtx.hackdigest -la /app /app/hackdigest/bin || true
+            echo "::endgroup::"
+            echo "::group::app in foreground (30s cap)"
+            timeout 30 env DISPLAY=:99 WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+              LIBGL_ALWAYS_SOFTWARE=1 flatpak run site.jrtx.hackdigest || true
+            echo "::endgroup::"
+            exit 1
+          }
+          pkill -f site.jrtx.hackdigest || true
           kill "$xvfb_pid" 2>/dev/null || true
       - name: Dump build dirs (diagnosis)
         if: failure()
