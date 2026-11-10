@@ -64,13 +64,21 @@ export default function DailyDigest() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl px-5 py-6">
-      <div className="flex items-center gap-2">
-        <IconSpark width={18} height={18} className="text-accent" />
-        <h1 className="text-lg font-semibold">{t.daily}</h1>
-        <span className="text-xs text-mute">{todayKey()}</span>
+    <div className="px-6 py-6">
+      <div className="flex items-center gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-[17px] font-bold leading-tight">
+            <IconSpark width={16} height={16} className="text-accent" />
+            {t.daily}
+          </h1>
+          <p className="mt-0.5 text-xs text-mute">
+            {todayKey()} · {t.dailyIntro}
+            {cached ? ` ${t.dailyCached}` : ''}
+          </p>
+        </div>
+        <div className="flex-1" />
         <button
-          className="ml-auto flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+          className="flex h-[30px] items-center gap-1.5 rounded-md border border-line bg-surface px-3 text-xs font-semibold text-ink hover:bg-raised disabled:opacity-50"
           onClick={run}
           disabled={running || !stories}
         >
@@ -78,15 +86,11 @@ export default function DailyDigest() {
           {content && !running ? t.regenerate : t.generateDaily}
         </button>
       </div>
-      <p className="mt-1 text-xs text-mute">
-        {t.dailyIntro}
-        {cached ? ` ${t.dailyCached}` : ''}
-      </p>
 
       {content != null ? (
-        <div className="prose-hn mt-5 rounded-xl border border-line bg-surface p-5 text-[14px]" dangerouslySetInnerHTML={{ __html: miniMarkdown(content) }} />
+        <div className="prose-hn mt-5 rounded-lg border border-line bg-surface p-5 text-[14px]" dangerouslySetInnerHTML={{ __html: miniMarkdown(content) }} />
       ) : (
-        <div className="mt-5 rounded-xl border border-dashed border-line bg-surface p-8 text-center text-sm text-mute">
+        <div className="mt-5 rounded-lg border border-dashed border-line bg-surface p-10 text-center text-sm text-mute">
           {running ? t.digestThreadRunning : t.dailyIntro}
         </div>
       )}

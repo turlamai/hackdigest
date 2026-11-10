@@ -349,25 +349,19 @@ export default function StoryDetail({ id }: { id: number }) {
         </button>
       </div>
 
-      <div className="px-5 pt-5">
-        <h1 className="text-xl font-semibold leading-snug">
+      <div className="px-6 pt-5">
+        <h1 className="text-[17px] font-bold leading-snug">
           {titleZh ? trans!.title : story.title}
           {titleZh && (
-            <span className="mt-1 block text-sm font-normal text-mute">{story.title}</span>
+            <span className="mt-0.5 block text-[14.5px] font-medium text-mute">{story.title}</span>
           )}
         </h1>
 
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-mute">
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-mute">
           {story.score != null && (
-            <span>
-              {story.score} {t.points}
-            </span>
+            <span className="tabular-nums">▲ {story.score}</span>
           )}
-          {story.by && (
-            <span>
-              {t.by} {story.by}
-            </span>
-          )}
+          {story.by && <span>{story.by}</span>}
           <span>{timeAgo(story.time, lang)}</span>
           {domain && <span className="rounded bg-raised px-1.5 py-px">{domain}</span>}
           {story.descendants != null && (
@@ -380,7 +374,7 @@ export default function StoryDetail({ id }: { id: number }) {
         <div className="mt-4 flex flex-wrap gap-2">
           {story.url && (
             <button
-              className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+              className="flex h-[30px] items-center gap-1.5 rounded-md border border-line bg-surface px-3 text-xs font-semibold text-ink hover:bg-raised"
               onClick={() => story.url && void openExternal(story.url)}
             >
               <IconExternal width={13} height={13} />
@@ -388,7 +382,7 @@ export default function StoryDetail({ id }: { id: number }) {
             </button>
           )}
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium hover:bg-raised"
+            className="flex h-[30px] items-center gap-1.5 rounded-md border border-line bg-surface px-3 text-xs font-semibold text-ink hover:bg-raised disabled:opacity-50"
             onClick={translateStoryNow}
             disabled={translatingStory}
           >
@@ -402,7 +396,7 @@ export default function StoryDetail({ id }: { id: number }) {
           {comments.length > 0 && (
             <button
               title={t.translateVisibleHint}
-              className={autoMode ? 'flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accentsoft px-3 py-1.5 text-xs font-medium text-accent hover:opacity-90' : 'flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium hover:bg-raised'}
+              className={autoMode ? 'flex h-[30px] items-center gap-1.5 rounded-md border border-transparent bg-accentsoft px-3 text-xs font-semibold text-accent hover:opacity-90' : 'flex h-[30px] items-center gap-1.5 rounded-md border border-line bg-surface px-3 text-xs font-semibold text-ink hover:bg-raised'}
               onClick={toggleAutoMode}
             >
               <IconTranslate className={autoMode ? 'animate-pulse' : ''} width={13} height={13} />
@@ -411,7 +405,7 @@ export default function StoryDetail({ id }: { id: number }) {
           )}
           {comments.length > 0 && (
             <button
-              className="flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accentsoft px-3 py-1.5 text-xs font-medium text-accent hover:opacity-90"
+              className="flex h-[30px] items-center gap-1.5 rounded-md border border-transparent bg-accentsoft px-3 text-xs font-semibold text-accent hover:opacity-90 disabled:opacity-50"
               onClick={runDigest}
               disabled={digesting}
             >
@@ -420,7 +414,7 @@ export default function StoryDetail({ id }: { id: number }) {
             </button>
           )}
           <button
-            className={`ml-auto flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs hover:bg-raised ${
+            className={`ml-auto flex h-[30px] items-center gap-1.5 rounded-md border border-line px-3 text-xs font-semibold hover:bg-raised ${
               bookmarked ? 'text-accent' : 'text-mute'
             }`}
             onClick={async () => setBookmarked(await toggleBookmark(id))}
@@ -430,8 +424,8 @@ export default function StoryDetail({ id }: { id: number }) {
         </div>
 
         {digest != null && (
-          <div className="prose-hn mt-5 rounded-xl border border-accent/30 bg-surface p-5 text-[14px]">
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent">
+          <div className="prose-hn mt-5 rounded-lg border border-line bg-surface p-5 text-[14px]">
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-accent">
               <IconSpark width={13} height={13} />
               {t.digestThread}
             </div>

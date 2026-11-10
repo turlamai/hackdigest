@@ -102,6 +102,11 @@ export function CommentNode({ item, children, tree, kidsLoaded, kidFailedIds, on
           <span className="font-medium text-ink/80">{item.by ?? '?'}</span>
         </button>
         <span>{timeAgo(item.time, lang)}</span>
+        {trans?.text && (
+          <span className="rounded-full bg-accentsoft px-1.5 py-px text-[10.5px] font-semibold text-accent">
+            {t.translated}
+          </span>
+        )}
         {collapsed && replyCount > 0 && (
           <span className="text-accent">
             {replyCount} {t.replies}
