@@ -55,6 +55,17 @@ packaged-native matrix compiles per platform in its own CI job; if you
 touch the packaging or platform paths, say whether you were able to
 build locally.
 
+## Product site
+
+`docs/` is the published product site: GitHub Pages serves it straight
+from `main` (`/docs`, CNAME `hackdigest.jrtx.site`), so a push to main
+is a site deploy. Keep `docs/` self-contained — site-kit assets live in
+`docs/fonts/` and `docs/assets/`, versions pinned in `site-kit.version`
+— and never edit the generated `family.css` / `family.js` per-site;
+they come from [site-kit](https://github.com/turlamai/site-kit).
+`CNAME` must not move, and links stay relative: the site runs at a
+subdomain root.
+
 ## Reporting issues
 
 Include: OS + version, HackDigest version, installation shape (DMG /

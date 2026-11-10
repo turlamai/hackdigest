@@ -99,14 +99,14 @@ jobs:
       - name: Install crypto
         run: raco pkg install --auto --no-docs --skip-installed crypto
 
-      - name: App icon (icns from icon-1024.png)
+      - name: App icon (icns from assets/icon-1024.png)
         run: |
           ICONSET=dist/icon.iconset
           mkdir -p "$ICONSET"
           for spec in 16 32 128 256 512; do
-            sips -z $spec $spec icon-1024.png --out "$ICONSET/icon_${spec}x${spec}.png" >/dev/null
+            sips -z $spec $spec assets/icon-1024.png --out "$ICONSET/icon_${spec}x${spec}.png" >/dev/null
             dbl=$((spec * 2))
-            sips -z $dbl $dbl icon-1024.png --out "$ICONSET/icon_${spec}x${spec}@2x.png" >/dev/null
+            sips -z $dbl $dbl assets/icon-1024.png --out "$ICONSET/icon_${spec}x${spec}@2x.png" >/dev/null
           done
           iconutil -c icns "$ICONSET" -o dist/HackDigest.icns
           rm -rf "$ICONSET"
@@ -404,7 +404,7 @@ jobs:
           for s in 16 24 32 48 64 128 256 512; do
             dir="$root/usr/share/icons/hicolor/${s}x${s}/apps"
             mkdir -p "$dir"
-            convert icon-1024.png -resize ${s}x${s} "$dir/hackdigest.png"
+            convert assets/icon-1024.png -resize ${s}x${s} "$dir/hackdigest.png"
           done
           cat > "$root/usr/share/applications/hackdigest.desktop" <<'EOF'
           [Desktop Entry]
@@ -517,7 +517,7 @@ jobs:
           exec /opt/hackdigest/bin/HackDigest "$@"
           EOF
           chmod 755 "$topdir/STAGED/usr/bin/hackdigest"
-          convert icon-1024.png -resize 256x256 "$topdir/STAGED/usr/share/pixmaps/hackdigest.png"
+          convert assets/icon-1024.png -resize 256x256 "$topdir/STAGED/usr/share/pixmaps/hackdigest.png"
           cat > "$topdir/STAGED/usr/share/applications/hackdigest.desktop" <<'EOF'
           [Desktop Entry]
           Type=Application
@@ -642,7 +642,7 @@ jobs:
           Categories=Network;Utility;
           EOF
           cp "$appdir/hackdigest.desktop" "$appdir/usr/share/applications/hackdigest.desktop"
-          convert icon-1024.png -resize 256x256 "$appdir/hackdigest.png"
+          convert assets/icon-1024.png -resize 256x256 "$appdir/hackdigest.png"
           cp "$appdir/hackdigest.png" "$appdir/usr/share/icons/hicolor/256x256/apps/hackdigest.png"
           ln -s hackdigest.png "$appdir/.DirIcon"
           ./"$asset" --no-appstream "$appdir" "hackdigest-$VERSION-linux-${{ matrix.arch }}.AppImage"

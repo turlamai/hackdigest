@@ -111,9 +111,10 @@ live in the Racket backend.
 hackdigest/
 ├── backend/          Racket host on Glaze: storage, LLM proxy, app shell
 ├── apps/desktop/     React frontend (built to dist/, served by the host)
-├── apps/mobile/      Phase 3
 ├── packages/core/    shared TypeScript core: HN API, storage, BYOK presets
-└── docs/
+├── design/           DESIGN.md visual contract + HTML prototypes (design gate)
+├── assets/           app icon source (assets/icon-1024.png)
+└── docs/             product site (hackdigest.jrtx.site) + user guide
 ```
 
 ## License & business model

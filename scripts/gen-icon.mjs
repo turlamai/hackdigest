@@ -1,5 +1,5 @@
 // Generates the app icon (1024x1024 PNG) with a hand-rolled PNG encoder.
-// Run: node scripts/gen-icon.mjs  → writes icon-1024.png next to the script.
+// Run: node scripts/gen-icon.mjs  → writes assets/icon-1024.png.
 
 import { deflateSync } from 'node:zlib';
 import { writeFileSync } from 'node:fs';
@@ -113,6 +113,6 @@ for (let y = 0; y < SIZE; y++) {
   }
 }
 
-const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'icon-1024.png');
+const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'icon-1024.png');
 writeFileSync(out, encodePNG(img, SIZE, SIZE));
 console.log('wrote', out);
