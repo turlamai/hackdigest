@@ -32,6 +32,9 @@ jobs:
       - name: Release signing contract (offline)
         run: bash scripts/check-release-signing-contract.sh
 
+      - name: Release version consistency (offline)
+        run: bash scripts/check-release-version.sh
+
       - name: Type-check
         run: pnpm check
 
