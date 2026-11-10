@@ -30,7 +30,7 @@
       void
       (lambda ()
         (http-conn-send! conn
-                         #"/repos/turinglambdaai/hackdigest/releases/latest"
+                         #"/repos/turlamai/hackdigest/releases/latest"
                          #:headers (list #"User-Agent: hackdigest-updater"
                                          #"Accept: application/vnd.github+json"))
         (define-values (status headers content) (http-conn-recv! conn))
@@ -50,6 +50,6 @@
                     (hash? j)
                     (hasheq 'version version
                             'url (hash-ref j 'html_url
-                                           "https://github.com/turinglambdaai/hackdigest/releases")
+                                           "https://github.com/turlamai/hackdigest/releases")
                             'body (or (hash-ref j 'body #f) ""))))))
       (lambda () (http-conn-close! conn)))))
