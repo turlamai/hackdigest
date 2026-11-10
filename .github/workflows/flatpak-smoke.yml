@@ -77,11 +77,15 @@ jobs:
           # already present, so nothing reaches for the network here.
           DISPLAY=:99 flatpak --user install -y --noninteractive \
             ./hackdigest-*-linux-*.flatpak
-          # No GPU on the runner — the same renderer switch the release
+          # No GPU on the runner — the renderer switches the release
           # smokes use. HackDigest self-asserts its page render only with
           # HACKDIGEST_SELFTEST; here the gates are the sandboxed process
           # being alive and the WebKitGTK window mapping on the display.
-          DISPLAY=:99 flatpak run --env=WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+          # First paint inside a cold sandbox (WebKit user-dir bootstrap
+          # plus the startup update check) can take a while — poll for the
+          # window instead of sleeping a fixed few seconds.
+          DISPLAY=:99 flatpak run \
+            --env=WEBKIT_DISABLE_DMABUF_RENDERER=1 --env=LIBGL_ALWAYS_SOFTWARE=1 \
             site.jrtx.hackdigest > app-run.log 2>&1 & run_pid=$!
           for _ in $(seq 1 20); do
             flatpak ps --columns=application | grep -q site.jrtx.hackdigest && break
@@ -89,11 +93,19 @@ jobs:
           done
           # The sandboxed process is alive under its own instance.
           flatpak ps --columns=application | grep site.jrtx.hackdigest
-          sleep 8
-          # The window mapped on the display and the embedded backend booted
-          # (the GLZ1 runtime layout resolves through /proc/self/exe inside
-          # the sandbox).
-          DISPLAY=:99 xwininfo -root -tree | grep -i hackdigest
+          # The window mapped on the display and the embedded backend
+          # booted (the GLZ1 runtime layout resolves through
+          # /proc/self/exe inside the sandbox).
+          window=""
+          for _ in $(seq 1 30); do
+            if DISPLAY=:99 xwininfo -root -tree 2>/dev/null | grep -qi hackdigest; then
+              window="yes"
+              break
+            fi
+            kill -0 "$run_pid" 2>/dev/null || { echo "::error::sandboxed app exited early"; tail -20 app-run.log || true; exit 1; }
+            sleep 2
+          done
+          [ -n "$window" ] || { echo "::error::no HackDigest window on the display; app log:"; tail -40 app-run.log || true; exit 1; }
           kill "$run_pid" 2>/dev/null || pkill -f site.jrtx.hackdigest || true
           kill "$xvfb_pid" 2>/dev/null || true
       - name: Dump build dirs (diagnosis)
