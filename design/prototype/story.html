@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackDigest — 故事详情原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== 详情页专属 ==== */
+  .crumb { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--mute); }
+  .detail { padding: 8px 28px 24px; }
+  .tzh { font-size: 17px; font-weight: 700; line-height: 1.45; }
+  .ten { font-size: 14.5px; font-weight: 500; color: var(--mute); margin-top: 4px; }
+  .meta2 { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12.5px; color: var(--mute); flex-wrap: wrap; }
+  .meta2 .sep { opacity: .55; }
+  .meta2 .act { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .tldr {
+    margin-top: 16px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .tldr .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .tldr .hd .tt { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .tldr .hd .src { font-size: 11.5px; color: var(--mute); }
+  .tldr .hd .sp { flex: 1; }
+  .tldr ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .tldr li { font-size: 13.5px; line-height: 1.65; padding-left: 18px; position: relative; }
+  .tldr li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .7; }
+  .tldr .ft { margin-top: 12px; font-size: 12px; color: var(--mute); display: flex; align-items: center; gap: 8px; }
+  .tldr .ft .sp { flex: 1; }
+  .chead { display: flex; align-items: center; gap: 14px; margin: 22px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .chead h2 { font-size: 14px; font-weight: 700; }
+  .chead .cnt { font-size: 12.5px; color: var(--mute); }
+  .chead .sp { flex: 1; }
+  .linkbtn { font-size: 12.5px; font-weight: 600; color: var(--accent); background: none; border: none; cursor: pointer; }
+  .cmt { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .cmt:last-child { border-bottom: none; }
+  .cmt .indent { display: flex; gap: 12px; }
+  .cmt .rail { flex: none; width: 2px; border-radius: 2px; background: var(--line); }
+  .cmt.d1 .indent { margin-left: 0; }
+  .cmt.d2 .indent { margin-left: 26px; }
+  .cmt.d3 .indent { margin-left: 52px; }
+  .cbody { flex: 1; min-width: 0; }
+  .who { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--mute); }
+  .who .a { font-weight: 600; color: var(--ink); }
+  .who .chip { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+  .ctext { font-size: 13.5px; line-height: 1.7; margin-top: 5px; }
+  .corig { font-size: 12.5px; line-height: 1.6; color: var(--mute); margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--line); }
+  .cacts { display: flex; gap: 14px; margin-top: 7px; font-size: 12px; }
+  .cacts .l { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .cacts .q { color: var(--mute); }
+  .fold {
+    margin-top: 12px; text-align: center; font-size: 12.5px; font-weight: 600; color: var(--accent);
+    background: var(--raised); border-radius: 6px; padding: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">HackDigest — SQLite is all you need</div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">H</div><div class="name">HackDigest</div></div>
+        <div class="sect">FEEDS</div>
+        <nav class="nav">
+          <div class="item active"><span class="kb">1</span>热门 Top</div>
+          <div class="item"><span class="kb">2</span>最新 New</div>
+          <div class="item"><span class="kb">3</span>最佳 Best</div>
+          <div class="item"><span class="kb">4</span>提问 Ask</div>
+          <div class="item"><span class="kb">5</span>展示 Show</div>
+          <div class="item"><span class="kb">6</span>招聘 Jobs</div>
+        </nav>
+        <div class="sect">LIBRARY</div>
+        <nav class="nav">
+          <div class="item">✦ 每日摘要<span class="pill">已生成</span></div>
+          <div class="item">书签</div>
+          <div class="item">⚙ 设置</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">GLM 已连接</span>
+          <span class="sp"></span><span class="st">v1.0</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <span class="crumb">← <kbd>u</kbd> 返回列表</span>
+          <span class="crumb">Top Stories · #1</span>
+          <div class="sp"></div>
+          <button class="btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" style="display:block;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> 收藏 <kbd>s</kbd></button>
+          <button class="btn primary">译 翻译全部评论 <kbd>shift+t</kbd></button>
+        </div>
+        <div class="view detail">
+          <div class="tzh">SQLite 就够了：单文件数据库撑起生产系统的实践合集</div>
+          <div class="ten">SQLite is all you need · sqlite.systems</div>
+          <div class="meta2">
+            ▲ 892<span class="sep">·</span>4 小时前<span class="sep">·</span>dang<span class="sep">·</span><span class="act">打开原文 ↗</span><span class="sep">·</span>214 条评论<span class="sep">·</span>
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);">TL;DR 已生成</span>
+            <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--raised);color:var(--mute);">机译</span>
+          </div>
+          <div class="tldr">
+            <div class="hd"><span class="tt">✦ TL;DR 摘要</span><span class="src">GLM · 机译 · 可回溯原文</span><span class="sp"></span><span class="src">生成于 5 分钟前</span></div>
+            <ul>
+              <li>作者用三个真实生产系统（日均亿级请求）证明：80% 的「必须上 PostgreSQL」场景，单文件 SQLite 加 WAL 模式就能稳定扛住。</li>
+              <li>关键前提是单机写入——文章给出litmus 测试清单，帮读者判断自己的负载是否越过了 SQLite 的边界。</li>
+              <li>最大收获不是「换 SQLite」，而是把数据库选型从默认复杂降级为默认简单，复杂度只在实际需要时引入。</li>
+            </ul>
+            <div class="ft"><span class="l" style="color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:2px;">重新生成</span><span class="sp"></span><span>基于 214 条评论与原文 · 841 tokens</span></div>
+          </div>
+          <div class="chead">
+            <h2>评论</h2>
+            <span class="cnt">已翻译 12 / 214 · 按热度排序</span>
+            <span class="sp"></span>
+            <button class="linkbtn">翻译更多 ↓</button>
+          </div>
+          <div class="cmt d1">
+            <div class="indent"><div class="rail"></div>
+              <div class="cbody">
+                <div class="who"><span class="a">dang</span>· 3 小时前<span class="chip">机译</span></div>
+                <div class="ctext">我们在支付流水系统里跑 SQLite 已经四年了，峰值每天 3000 万次写入。最关键的决策是 WAL + 每小时 checkpoint，然后备份直接用 litestream 推到 S3，故障恢复从未超过两分钟。</div>
+                <div class="corig">We've been running SQLite in our payments ledger for four years now, peaking at 30M writes/day. The key decision was WAL + hourly checkpoints, with litestream shipping backups to S3 — recovery has never taken more than two minutes.</div>
+                <div class="cacts"><span class="l">收起原文</span><span class="q">↑ 142 · 回复 18</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="cmt d2">
+            <div class="indent"><div class="rail"></div>
+              <div class="cbody">
+                <div class="who"><span class="a">kcontin</span>· 3 小时前</div>
+                <div class="ctext">How do you handle schema migrations with zero downtime? That's where our SQLite setup always gets painful.</div>
+                <div class="cacts"><span class="l">翻译此评论</span><span class="q">↑ 36</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="cmt d2">
+            <div class="indent"><div class="rail"></div>
+              <div class="cbody">
+                <div class="who"><span class="a">dang</span>· 2 小时前<span class="chip">机译</span></div>
+                <div class="ctext">零停机迁移靠「双写窗口」：新列先加为 nullable，应用双写两周，再一次性切读。迁移脚本全部幂等，可以安全重放。</div>
+                <div class="cacts"><span class="l">收起原文</span><span class="q">↑ 89 · 回复 4</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="cmt d1">
+            <div class="indent"><div class="rail"></div>
+              <div class="cbody">
+                <div class="who"><span class="a">pgfan</span>· 2 小时前</div>
+                <div class="ctext">The moment you need concurrent writers or replication, this article's advice falls apart. Postgres isn't "default complexity" — it's the correct default for most real systems.</div>
+                <div class="cacts"><span class="l">翻译此评论</span><span class="q">↑ 67</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="fold">展开该楼层的 36 条回复</div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>←</kbd><kbd>u</kbd> 返回</span>
+          <span><kbd>t</kbd> 翻译标题</span>
+          <span><kbd>shift+t</kbd> 翻译全部评论</span>
+          <span><kbd>d</kbd> 摘要</span>
+          <span><kbd>s</kbd> 书签</span>
+          <span><kbd>?</kbd> 全部快捷键</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>

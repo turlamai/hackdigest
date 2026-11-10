@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackDigest — Feed 原型（英雄屏）</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== feed 页面专属 ==== */
+  .search {
+    display: flex; align-items: center; gap: 8px; width: 240px; height: 30px; padding: 0 10px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 6px; color: var(--mute); font-size: 13px;
+  }
+  .search .kb { margin-left: auto; }
+  .banner {
+    flex: none; margin: 0 20px 10px; padding: 8px 14px; border-radius: 8px;
+    background: var(--accent-soft); color: var(--accent); font-size: 12.5px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .banner .go { margin-left: auto; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; }
+  .row {
+    display: flex; gap: 12px; padding: 12px 12px; border-radius: 8px; align-items: flex-start;
+    border-bottom: 1px solid var(--line); transition: background .12s ease;
+  }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: color-mix(in srgb, var(--raised) 55%, transparent); }
+  .row.selected { background: var(--raised); box-shadow: inset 2px 0 0 var(--accent); }
+  .rank { width: 24px; flex: none; text-align: right; font-size: 13px; font-weight: 600; color: var(--mute); padding-top: 2px; font-variant-numeric: tabular-nums; }
+  .row.selected .rank { color: var(--accent); }
+  .content { flex: 1; min-width: 0; }
+  .title { font-size: 15px; font-weight: 600; line-height: 1.35; }
+  .title .domain { font-weight: 400; font-size: 12.5px; color: var(--mute); margin-left: 6px; }
+  .zh { font-size: 14px; font-weight: 500; line-height: 1.5; margin-top: 3px; color: var(--ink); opacity: .92; }
+  .meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12.5px; color: var(--mute); }
+  .meta .sep { opacity: .55; }
+  .chips { display: flex; gap: 6px; margin-top: 7px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent);
+  }
+  .chip.quiet { background: var(--raised); color: var(--mute); }
+  .chip.busy::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--accent); border-top-color: transparent; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-top: 2px; }
+  .bm { font-size: 13px; color: var(--mute); }
+  .bm svg { display: block; }
+  .bm.on { color: var(--accent); }
+  .bm.on svg { fill: currentColor; }
+  .comments { font-size: 12.5px; color: var(--mute); display: flex; align-items: center; gap: 4px; }
+  .comments svg { display: block; opacity: .75; }
+  .theme-note { font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">HackDigest — Top Stories</div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">H</div><div class="name">HackDigest</div></div>
+        <div class="sect">FEEDS</div>
+        <nav class="nav">
+          <div class="item active"><span class="kb">1</span>热门 Top</div>
+          <div class="item"><span class="kb">2</span>最新 New</div>
+          <div class="item"><span class="kb">3</span>最佳 Best</div>
+          <div class="item"><span class="kb">4</span>提问 Ask</div>
+          <div class="item"><span class="kb">5</span>展示 Show</div>
+          <div class="item"><span class="kb">6</span>招聘 Jobs</div>
+        </nav>
+        <div class="sect">LIBRARY</div>
+        <nav class="nav">
+          <div class="item">✦ 每日摘要<span class="pill">已生成</span></div>
+          <div class="item">书签</div>
+          <div class="item">⚙ 设置</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">GLM 已连接</span>
+          <span class="sp"></span><span class="st">v1.0</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div>
+            <h1>Top Stories</h1>
+            <div class="date">2026 年 11 月 10 日 · 更新于 5 分钟前</div>
+          </div>
+          <div class="sp"></div>
+          <div class="search">⌕ 搜索故事…<span class="kb">/</span></div>
+          <button class="btn">⟳ 刷新 <kbd>r</kbd></button>
+          <button class="btn primary">译 翻译本页 <kbd>shift+t</kbd></button>
+        </div>
+        <div class="banner">✦ 今日摘要已生成：30 条精选 · 8 分钟读完 <span class="go">打开查看 →</span></div>
+        <div class="view">
+          <div class="row selected">
+            <div class="rank">1</div>
+            <div class="content">
+              <div class="title">SQLite is all you need<span class="domain">sqlite.systems</span></div>
+              <div class="zh">SQLite 就够了：单文件数据库撑起生产系统的实践合集</div>
+              <div class="meta">▲ 892<span class="sep">·</span>4 小时前<span class="sep">·</span>dang<span class="sep">·</span>214 条评论</div>
+              <div class="chips"><span class="chip">TL;DR 已生成</span><span class="chip quiet">机译</span></div>
+            </div>
+            <div class="side">
+              <span class="bm on"><svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+              <span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>214</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="rank">2</div>
+            <div class="content">
+              <div class="title">The forgotten art of parsing<span class="domain">yosefk.com</span></div>
+              <div class="zh">被遗忘的解析艺术：手写 parser 为什么仍然是值得学的技能</div>
+              <div class="meta">▲ 517<span class="sep">·</span>6 小时前<span class="sep">·</span>tosh<span class="sep">·</span>156 条评论</div>
+              <div class="chips"><span class="chip quiet">机译</span></div>
+            </div>
+            <div class="side"><span class="bm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>156</span></div>
+          </div>
+          <div class="row">
+            <div class="rank">3</div>
+            <div class="content">
+              <div class="title">Rust in the Linux kernel, one year later<span class="domain">lwn.net</span></div>
+              <div class="zh">Rust 进入 Linux 内核一年后：驱动生态的真实进展与阻力</div>
+              <div class="meta">▲ 463<span class="sep">·</span>3 小时前<span class="sep">·</span>jimb<span class="sep">·</span>301 条评论</div>
+              <div class="chips"><span class="chip">TL;DR 已生成</span><span class="chip quiet">机译</span></div>
+            </div>
+            <div class="side"><span class="bm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>301</span></div>
+          </div>
+          <div class="row">
+            <div class="rank">4</div>
+            <div class="content">
+              <div class="title">Show HN: I built a self-hosted photo browser that runs offline<span class="domain">github.com</span></div>
+              <div class="meta">▲ 238<span class="sep">·</span>2 小时前<span class="sep">·</span>pixelfolk<span class="sep">·</span>87 条评论</div>
+              <div class="chips"><span class="chip busy">翻译中…</span></div>
+            </div>
+            <div class="side"><span class="bm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>87</span></div>
+          </div>
+          <div class="row">
+            <div class="rank">5</div>
+            <div class="content">
+              <div class="title">Ask HN: Who is hiring? (November 2026)<span class="domain">news.ycombinator.com</span></div>
+              <div class="meta">▲ 156<span class="sep">·</span>7 小时前<span class="sep">·</span>whoishiring<span class="sep">·</span>640 条评论</div>
+            </div>
+            <div class="side"><span class="bm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>640</span></div>
+          </div>
+          <div class="row">
+            <div class="rank">6</div>
+            <div class="content">
+              <div class="title">A deep dive into WebGPU compute pipelines<span class="domain">coherent.is</span></div>
+              <div class="zh">WebGPU 计算管线深度拆解：从指令到性能模型</div>
+              <div class="meta">▲ 201<span class="sep">·</span>5 小时前<span class="sep">·</span>gpuguy<span class="sep">·</span>44 条评论</div>
+              <div class="chips"><span class="chip quiet">机译</span></div>
+            </div>
+            <div class="side"><span class="bm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>44</span></div>
+          </div>
+          <div class="row">
+            <div class="rank">7</div>
+            <div class="content">
+              <div class="title">The economics of small software<span class="domain">smallco.blog</span></div>
+              <div class="meta">▲ 178<span class="sep">·</span>8 小时前<span class="sep">·</span>indie<span class="sep">·</span>112 条评论</div>
+            </div>
+            <div class="side"><span class="bm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>112</span></div>
+          </div>
+          <div class="row">
+            <div class="rank">8</div>
+            <div class="content">
+              <div class="title">Why we rewrote our sync engine in Racket<span class="domain">turlamai.dev</span></div>
+              <div class="zh">我们为什么用 Racket 重写了同步引擎</div>
+              <div class="meta">▲ 95<span class="sep">·</span>1 小时前<span class="sep">·</span>tlai<span class="sep">·</span>23 条评论</div>
+              <div class="chips"><span class="chip quiet">机译</span></div>
+            </div>
+            <div class="side"><span class="bm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="comments"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>23</span></div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>j</kbd><kbd>k</kbd> 选择</span>
+          <span><kbd>↵</kbd> 打开</span>
+          <span><kbd>t</kbd> 翻译</span>
+          <span><kbd>d</kbd> 摘要</span>
+          <span><kbd>s</kbd> 书签</span>
+          <span><kbd>/</kbd> 搜索</span>
+          <span><kbd>?</kbd> 全部快捷键</span>
+          <span class="sp"></span>
+          <span class="theme-note">原型 v0.1 · 按 ◐ 切换亮暗</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>

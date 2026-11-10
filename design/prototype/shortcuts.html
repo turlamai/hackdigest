@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackDigest — 快捷键面板原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== 快捷键浮层专属 ==== */
+  .scrim {
+    position: absolute; inset: 44px 0 0 0; z-index: 10;
+    background: rgba(31, 29, 26, .45);
+    display: grid; place-items: center;
+  }
+  .dark .scrim { background: rgba(0, 0, 0, .52); }
+  .panel {
+    width: 660px; background: var(--surface); border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(31,29,26,.14), 0 24px 64px rgba(31,29,26,.28);
+    padding: 20px 24px 22px;
+  }
+  .phd { display: flex; align-items: center; margin-bottom: 16px; }
+  .phd h2 { font-size: 15px; font-weight: 700; }
+  .phd .sp { flex: 1; }
+  .phd .x { font-size: 14px; color: var(--mute); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+  .kg h3 { font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--mute); margin: 12px 0 8px; }
+  .kg .kr { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+  .kg .kr .lab { font-size: 13px; }
+  .kg .kr .sp { flex: 1; }
+  .kg .keys { display: flex; gap: 4px; }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">HackDigest — Top Stories</div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">H</div><div class="name">HackDigest</div></div>
+        <div class="sect">FEEDS</div>
+        <nav class="nav">
+          <div class="item active"><span class="kb">1</span>热门 Top</div>
+          <div class="item"><span class="kb">2</span>最新 New</div>
+          <div class="item"><span class="kb">3</span>最佳 Best</div>
+          <div class="item"><span class="kb">4</span>提问 Ask</div>
+          <div class="item"><span class="kb">5</span>展示 Show</div>
+          <div class="item"><span class="kb">6</span>招聘 Jobs</div>
+        </nav>
+        <div class="sect">LIBRARY</div>
+        <nav class="nav">
+          <div class="item">✦ 每日摘要<span class="pill">已生成</span></div>
+          <div class="item">书签</div>
+          <div class="item">⚙ 设置</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">GLM 已连接</span>
+          <span class="sp"></span><span class="st">v1.0</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div><h1>Top Stories</h1><div class="date">2026 年 11 月 10 日 · 更新于 5 分钟前</div></div>
+        </div>
+        <div class="view"></div>
+        <div class="statusbar">
+          <span><kbd>j</kbd><kbd>k</kbd> 选择</span>
+          <span><kbd>↵</kbd> 打开</span>
+          <span class="sp"></span>
+          <span>按 <kbd>?</kbd> 开关此面板 · <kbd>esc</kbd> 关闭</span>
+        </div>
+      </section>
+    </div>
+    <div class="scrim">
+      <div class="panel">
+        <div class="phd"><h2>键盘快捷键</h2><span class="sp"></span><span class="x">✕</span></div>
+        <div class="cols">
+          <div class="kg">
+            <h3>导航</h3>
+            <div class="kr"><span class="lab">上 / 下选择故事</span><span class="sp"></span><span class="keys"><kbd>j</kbd><kbd>k</kbd></span></div>
+            <div class="kr"><span class="lab">切换 Feed</span><span class="sp"></span><span class="keys"><kbd>1</kbd>…<kbd>6</kbd></span></div>
+            <div class="kr"><span class="lab">打开选中故事</span><span class="sp"></span><span class="keys"><kbd>↵</kbd><kbd>o</kbd></span></div>
+            <div class="kr"><span class="lab">返回列表 / 关闭</span><span class="sp"></span><span class="keys"><kbd>u</kbd><kbd>←</kbd><kbd>esc</kbd></span></div>
+            <div class="kr"><span class="lab">聚焦搜索</span><span class="sp"></span><span class="keys"><kbd>/</kbd></span></div>
+            <div class="kr"><span class="lab">在浏览器打开原文</span><span class="sp"></span><span class="keys"><kbd>shift</kbd><kbd>↵</kbd></span></div>
+            <h3>通用</h3>
+            <div class="kr"><span class="lab">开关此面板</span><span class="sp"></span><span class="keys"><kbd>?</kbd></span></div>
+            <div class="kr"><span class="lab">刷新当前 Feed</span><span class="sp"></span><span class="keys"><kbd>r</kbd></span></div>
+          </div>
+          <div class="kg">
+            <h3>翻译与摘要</h3>
+            <div class="kr"><span class="lab">翻译选中标题</span><span class="sp"></span><span class="keys"><kbd>t</kbd></span></div>
+            <div class="kr"><span class="lab">翻译本页全部标题</span><span class="sp"></span><span class="keys"><kbd>shift</kbd><kbd>t</kbd></span></div>
+            <div class="kr"><span class="lab">翻译全部评论</span><span class="sp"></span><span class="keys"><kbd>shift</kbd><kbd>t</kbd></span></div>
+            <div class="kr"><span class="lab">生成 / 打开 AI 摘要</span><span class="sp"></span><span class="keys"><kbd>d</kbd></span></div>
+            <div class="kr"><span class="lab">打开每日摘要</span><span class="sp"></span><span class="keys"><kbd>g</kbd><kbd>d</kbd></span></div>
+            <h3>收藏</h3>
+            <div class="kr"><span class="lab">书签 / 取消书签</span><span class="sp"></span><span class="keys"><kbd>s</kbd></span></div>
+            <div class="kr"><span class="lab">打开书签列表</span><span class="sp"></span><span class="keys"><kbd>g</kbd><kbd>b</kbd></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>

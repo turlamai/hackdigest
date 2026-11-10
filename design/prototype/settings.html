@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackDigest — 设置原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== 设置页专属 ==== */
+  .setwrap { max-width: 620px; padding: 4px 28px 28px; }
+  .sgrp { margin-top: 22px; }
+  .sgrp > h2 { font-size: 12px; font-weight: 700; letter-spacing: .6px; color: var(--mute); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .frow { display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid var(--line); }
+  .frow:last-child { border-bottom: none; }
+  .frow .fl { font-size: 13.5px; }
+  .frow .fd { font-size: 12px; color: var(--mute); margin-top: 2px; }
+  .frow .sp { flex: 1; }
+  .radio {
+    width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--line);
+    display: grid; place-items: center; flex: none;
+  }
+  .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: 0; }
+  .radio.on { border-color: var(--accent); }
+  .radio.on::after { opacity: 1; }
+  .prov { flex: 1; }
+  .prov .pn { font-size: 13.5px; font-weight: 500; }
+  .prov .pd { font-size: 12px; color: var(--mute); margin-top: 1px; }
+  .ok { font-size: 11px; font-weight: 600; color: #1d9a4e; background: color-mix(in srgb, #1d9a4e 10%, transparent); padding: 2px 8px; border-radius: 99px; }
+  .switch { width: 36px; height: 22px; border-radius: 99px; background: var(--line); position: relative; transition: background .12s ease; flex: none; }
+  .switch::after { content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: left .12s ease; box-shadow: 0 1px 2px rgba(0,0,0,.18); }
+  .switch.on { background: var(--accent); }
+  .switch.on::after { left: 16px; }
+  .seg { display: inline-flex; background: var(--raised); border-radius: 6px; padding: 2px; gap: 2px; }
+  .seg span { font-size: 12.5px; padding: 4px 12px; border-radius: 4px; color: var(--mute); }
+  .seg span.on { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(31,29,26,.12); }
+  .keyrow { display: flex; align-items: center; gap: 8px; }
+  .keyrow .input {
+    flex: 1; height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--surface); color: var(--mute); font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: flex; align-items: center;
+  }
+  .ver { font-size: 12.5px; color: var(--mute); }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">HackDigest — 设置</div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">H</div><div class="name">HackDigest</div></div>
+        <div class="sect">FEEDS</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">1</span>热门 Top</div>
+          <div class="item"><span class="kb">2</span>最新 New</div>
+          <div class="item"><span class="kb">3</span>最佳 Best</div>
+          <div class="item"><span class="kb">4</span>提问 Ask</div>
+          <div class="item"><span class="kb">5</span>展示 Show</div>
+          <div class="item"><span class="kb">6</span>招聘 Jobs</div>
+        </nav>
+        <div class="sect">LIBRARY</div>
+        <nav class="nav">
+          <div class="item">✦ 每日摘要<span class="pill">已生成</span></div>
+          <div class="item">书签</div>
+          <div class="item active">⚙ 设置</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">GLM 已连接</span>
+          <span class="sp"></span><span class="st">v1.0</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div><h1>设置</h1><div class="date">客户端功能免费，需自备模型 API key；托管翻译未开放购买</div></div>
+          <div class="sp"></div>
+          <button class="btn primary">恢复默认</button>
+        </div>
+        <div class="view">
+          <div class="setwrap">
+            <div class="sgrp">
+              <h2>翻译提供商</h2>
+              <div class="frow">
+                <span class="radio on"></span>
+                <div class="prov"><div class="pn">GLM（智谱）</div><div class="pd">glm-4.6 · 已验证可用</div></div>
+                <span class="ok">✓ 已连接</span>
+              </div>
+              <div class="frow">
+                <span class="radio"></span>
+                <div class="prov"><div class="pn">DeepSeek</div><div class="pd">deepseek-chat</div></div>
+              </div>
+              <div class="frow">
+                <span class="radio"></span>
+                <div class="prov"><div class="pn">Qwen（通义）</div><div class="pd">qwen-max</div></div>
+              </div>
+              <div class="frow">
+                <span class="radio"></span>
+                <div class="prov"><div class="pn">Kimi</div><div class="pd">moonshot-v1</div></div>
+              </div>
+              <div class="frow">
+                <span class="radio"></span>
+                <div class="prov"><div class="pn">OpenAI</div><div class="pd">gpt 系列兼容</div></div>
+              </div>
+              <div class="frow">
+                <span class="radio"></span>
+                <div class="prov"><div class="pn">Ollama（本地）</div><div class="pd">http://127.0.0.1:11434 · 无需密钥</div></div>
+              </div>
+            </div>
+            <div class="sgrp">
+              <h2>API 密钥</h2>
+              <div class="frow">
+                <div class="keyrow">
+                  <div class="input">sk-••••••••••••••••••••3f7a</div>
+                  <button class="btn primary">测试连接</button>
+                </div>
+              </div>
+              <div class="frow">
+                <div class="fl">连接状态</div>
+                <div class="sp"></div>
+                <span class="ok">✓ 有效 · 延迟 320ms</span>
+              </div>
+              <div class="frow">
+                <div class="fl">密钥存储</div>
+                <div class="sp"></div>
+                <div class="fd" style="margin:0;">系统安全存储（Keychain）· 密钥不出本机</div>
+              </div>
+            </div>
+            <div class="sgrp">
+              <h2>翻译偏好</h2>
+              <div class="frow">
+                <div><div class="fl">目标语言</div><div class="fd">标题、摘要与评论的翻译目标</div></div>
+                <div class="sp"></div>
+                <div class="seg"><span class="on">简体中文</span><span>English</span><span>日本語</span></div>
+              </div>
+              <div class="frow">
+                <div><div class="fl">自动翻译标题</div><div class="fd">列表加载后自动翻译可见标题</div></div>
+                <div class="sp"></div>
+                <div class="switch on"></div>
+              </div>
+              <div class="frow">
+                <div><div class="fl">自动生成 TL;DR</div><div class="fd">打开故事时后台生成摘要</div></div>
+                <div class="sp"></div>
+                <div class="switch on"></div>
+              </div>
+              <div class="frow">
+                <div><div class="fl">每日摘要</div><div class="fd">每天 06:00 用当日 Top 30 生成</div></div>
+                <div class="sp"></div>
+                <div class="switch on"></div>
+              </div>
+              <div class="frow">
+                <div><div class="fl">评论翻译上限</div><div class="fd">「翻译全部评论」单次最多处理条数</div></div>
+                <div class="sp"></div>
+                <div class="seg"><span>20</span><span class="on">50</span><span>100</span></div>
+              </div>
+            </div>
+            <div class="sgrp">
+              <h2>外观</h2>
+              <div class="frow">
+                <div><div class="fl">主题</div><div class="fd">跟随系统切换亮暗</div></div>
+                <div class="sp"></div>
+                <div class="seg"><span class="on">跟随系统</span><span>亮色</span><span>暗色</span></div>
+              </div>
+            </div>
+            <div class="sgrp">
+              <h2>更新</h2>
+              <div class="frow">
+                <div><div class="fl">当前版本</div><div class="fd">更新清单经 Ed25519 签名校验</div></div>
+                <div class="sp"></div>
+                <span class="ver">v1.0.1 · 已是最新</span>
+                <button class="btn">检查更新</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>?</kbd> 全部快捷键</span>
+          <span><kbd>esc</kbd> 返回</span>
+          <span class="sp"></span>
+          <span>BYOK 免费 · 密钥经系统安全存储，不出本机</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>

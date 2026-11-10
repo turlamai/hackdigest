@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackDigest — 每日摘要原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== 每日摘要页专属 ==== */
+  .digest { padding: 4px 28px 24px; }
+  .dsum { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--mute); margin-top: 4px; }
+  .dsum .sep { opacity: .55; }
+  .dgroup { margin-top: 20px; }
+  .dgroup > h2 { font-size: 12px; font-weight: 700; letter-spacing: .6px; color: var(--mute); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .dcard {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; margin-top: 10px; transition: background .12s ease;
+  }
+  .dcard:hover { background: color-mix(in srgb, var(--raised) 45%, var(--surface)); }
+  .dcard .dh { display: flex; align-items: baseline; gap: 10px; }
+  .dcard .no { font-size: 12px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .dcard .dt { font-size: 15px; font-weight: 600; line-height: 1.45; }
+  .dcard .ds { font-size: 13.5px; line-height: 1.65; color: var(--mute); margin-top: 5px; }
+  .dcard .df { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 12px; color: var(--mute); }
+  .dcard .df .sep { opacity: .55; }
+  .dcard .df .go { margin-left: auto; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  .tag { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 99px; background: var(--raised); color: var(--mute); }
+  .tag.hot { background: var(--accent-soft); color: var(--accent); }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <div class="titlebar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="t">HackDigest — 每日摘要</div>
+      <div class="sp"></div>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+    </div>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="brand"><div class="mark">H</div><div class="name">HackDigest</div></div>
+        <div class="sect">FEEDS</div>
+        <nav class="nav">
+          <div class="item"><span class="kb">1</span>热门 Top</div>
+          <div class="item"><span class="kb">2</span>最新 New</div>
+          <div class="item"><span class="kb">3</span>最佳 Best</div>
+          <div class="item"><span class="kb">4</span>提问 Ask</div>
+          <div class="item"><span class="kb">5</span>展示 Show</div>
+          <div class="item"><span class="kb">6</span>招聘 Jobs</div>
+        </nav>
+        <div class="sect">LIBRARY</div>
+        <nav class="nav">
+          <div class="item active">✦ 每日摘要<span class="pill">已生成</span></div>
+          <div class="item">书签</div>
+          <div class="item">⚙ 设置</div>
+        </nav>
+        <div class="foot">
+          <span class="dot"></span><span class="st">GLM 已连接</span>
+          <span class="sp"></span><span class="st">v1.0</span>
+        </div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div>
+            <h1>每日摘要</h1>
+            <div class="dsum">2026 年 11 月 10 日<span class="sep">·</span>30 条精选 · 约 8 分钟读完<span class="sep">·</span>生成于今晨 06:00<span class="sep">·</span>GLM · 机译</div>
+          </div>
+          <div class="sp"></div>
+          <button class="btn">分享…</button>
+          <button class="btn">⟳ 重新生成</button>
+        </div>
+        <div class="view digest">
+          <div class="dgroup">
+            <h2>AI 与大模型 · 9 条</h2>
+            <div class="dcard">
+              <div class="dh"><span class="no">01</span><span class="dt">开源推理框架单项跑分对比：小模型本地部署的性价比拐点已经出现</span><span class="tag hot">热议</span></div>
+              <div class="ds">作者在统一硬件上跑了 7 个推理框架 × 6 个 7B–14B 模型，结论是量化到 4bit 后本地小模型的首字延迟已低于主流托管 API，吞吐成本约为 API 的 1/9；但长上下文场景差距仍在 3 倍以上。评论区对「性价比拐点」的测算口径争论激烈。</div>
+              <div class="df">▲ 892<span class="sep">·</span>214 条讨论<span class="sep">·</span>sqlite.systems<span class="sep">·</span>原文 12 分钟<span class="go">打开讨论 →</span></div>
+            </div>
+            <div class="dcard">
+              <div class="dh"><span class="no">02</span><span class="dt">「我们裁掉了数据标注团队，换成模型自标注」——一年后的复盘</span></div>
+              <div class="ds">一家数据工具公司分享把标注流水线改为「模型预标 + 人工抽检」一年的真实账目：人力成本降 62%，但坏例率从 0.8% 升到 2.1%，最后靠抽检比例动态调整才拉回。评论区有三位从业者给出了几乎一致的踩坑时间线。</div>
+              <div class="df">▲ 517<span class="sep">·</span>156 条讨论<span class="sep">·</span>reviewable.io<span class="go">打开讨论 →</span></div>
+            </div>
+          </div>
+          <div class="dgroup">
+            <h2>编程语言与运行时 · 7 条</h2>
+            <div class="dcard">
+              <div class="dh"><span class="no">03</span><span class="dt">Rust 进入 Linux 内核一年后：驱动生态的真实进展与阻力</span><span class="tag hot">热议</span></div>
+              <div class="ds">LWN 长文盘点：已有 14 个 Rust 驱动进入主线，但抽象层 API 冻结问题让维护者疲于应付；核心争议是「Rust 抽象该由 C 侧提供契约还是 Rust 侧自行封装」。文中引用了三个维护者退出 Hello parching 的公开信。</div>
+              <div class="df">▲ 463<span class="sep">·</span>301 条讨论<span class="sep">·</span>lwn.net<span class="sep">·</span>原文 22 分钟<span class="go">打开讨论 →</span></div>
+            </div>
+            <div class="dcard">
+              <div class="dh"><span class="no">04</span><span class="dt">我们为什么用 Racket 重写了同步引擎</span></div>
+              <div class="ds">一篇罕见的生产级 Racket 实战：作者用语言级宏把冲突解决策略做成可组合的 DSL，核心同步逻辑从 1.1 万行 TS 缩到 3400 行 Racket，模糊测试发现的边界 bug 数量下降 80%。评论区对「可读性」两极分化。</div>
+              <div class="df">▲ 95<span class="sep">·</span>23 条讨论<span class="sep">·</span>turlamai.dev<span class="go">打开讨论 →</span></div>
+            </div>
+          </div>
+          <div class="dgroup">
+            <h2>工程实践 · 6 条</h2>
+            <div class="dcard">
+              <div class="dh"><span class="no">05</span><span class="dt">SQLite 就够了：单文件数据库撑起生产系统的实践合集</span><span class="tag hot">热议</span></div>
+              <div class="ds">三个日均亿级请求的生产系统佐证：80% 的「必须上 PostgreSQL」场景，SQLite + WAL 就能扛住。文章给出一份 litmus 清单判断负载是否越过单机写入边界，评论区补充了零停机迁移的「双写窗口」完整方案。</div>
+              <div class="df">▲ 892<span class="sep">·</span>214 条讨论<span class="sep">·</span>sqlite.systems<span class="go">打开讨论 →</span></div>
+            </div>
+            <div class="dcard">
+              <div class="dh"><span class="no">06</span><span class="dt">被遗忘的解析艺术：手写 parser 为什么仍然值得学</span></div>
+              <div class="ds">作者用 500 行手写递归下降替换 4 万行依赖的 ANTLR 方案，构建时间从 40 秒降到 2 秒。文章不是反工具链，而是主张「解析是少数手写比生成更可控的领域」，附完整的错误恢复实现清单。</div>
+              <div class="df">▲ 517<span class="sep">·</span>156 条讨论<span class="sep">·</span>yosefk.com<span class="go">打开讨论 →</span></div>
+            </div>
+          </div>
+          <div class="dgroup">
+            <h2>硬件与系统 · 4 条</h2>
+            <div class="dcard">
+              <div class="dh"><span class="no">07</span><span class="dt">WebGPU 计算管线深度拆解：从指令到性能模型</span></div>
+              <div class="ds">从 WGSL 指令选择到 barrier 开销的完整测量：同一段 compute 在三家浏览器实现上的性能差距高达 2.4 倍，文章定位到了 dispatch 粒度与 timeline semaphore 的实现差异。</div>
+              <div class="df">▲ 201<span class="sep">·</span>44 条讨论<span class="sep">·</span>coherent.is<span class="go">打开讨论 →</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>j</kbd><kbd>k</kbd> 卡片间移动</span>
+          <span><kbd>↵</kbd> 打开讨论</span>
+          <span><kbd>s</kbd> 收藏卡片</span>
+          <span><kbd>?</kbd> 全部快捷键</span>
+          <span class="sp"></span>
+          <span>摘要每天 06:00 自动生成 · 需配置模型 API key</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>
