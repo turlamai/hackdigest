@@ -84,13 +84,12 @@ jobs:
           # First paint inside a cold sandbox (WebKit user-dir bootstrap
           # plus the startup update check) can take a while — poll for the
           # window instead of sleeping a fixed few seconds.
-          # WEBKIT_FORCE_SANDBOX=0: WebKit's own bwrap/flatpak-spawn
-          # subprocess layer deadlocks inside a flatpak sandbox (no
-          # window, no output, process alive — observed on the first two
-          # runs). Flatpak is the sandbox here; the inner layer goes off.
+          # WEBKIT_FORCE_SANDBOX=0 is NOT set on purpose: GNOME 50's
+          # WebKitGTK deprecated it (it logs a warning and keeps the inner
+          # sandbox on), and the window maps fine with the sandbox on —
+          # the flatpak sandbox is the security boundary, not WebKit's.
           DISPLAY=:99 flatpak run \
             --env=WEBKIT_DISABLE_DMABUF_RENDERER=1 --env=LIBGL_ALWAYS_SOFTWARE=1 \
-            --env=WEBKIT_FORCE_SANDBOX=0 \
             site.jrtx.hackdigest > app-run.log 2>&1 &
           for _ in $(seq 1 20); do
             flatpak ps --columns=application | grep -q site.jrtx.hackdigest && break
@@ -129,7 +128,7 @@ jobs:
             echo "::endgroup::"
             echo "::group::app on a pty (60s cap; script gives flatpak a tty so it stays attached)"
             timeout 60 env DISPLAY=:99 WEBKIT_DISABLE_DMABUF_RENDERER=1 \
-              LIBGL_ALWAYS_SOFTWARE=1 WEBKIT_FORCE_SANDBOX=0 \
+              LIBGL_ALWAYS_SOFTWARE=1 \
               script -qec "flatpak run site.jrtx.hackdigest" /dev/null || true
             echo "::endgroup::"
             exit 1
