@@ -21,7 +21,7 @@ Hacker News 大概是互联网上最好的技术首页 —— 但对数以百万
 | 平台 | 产物 |
 |---|---|
 | macOS（Apple Silicon / Intel） | `hackdigest-<version>-macos-<arch>.dmg` + 便携 `.zip`（双架构齐备） |
-| Linux（x64 / arm64） | `hackdigest-<version>-linux-<arch>`：`.tar.gz` + `.deb` + `.rpm` + `.AppImage` + 便携 `.zip` —— 每种格式双架构都有 |
+| Linux（x64 / arm64） | `hackdigest-<version>-linux-<arch>`：`.tar.gz` + `.deb` + `.rpm` + `.AppImage` + `.flatpak` + 便携 `.zip` —— 每种格式双架构都有 |
 | Windows 10/11（x64） | `hackdigest-<version>-windows-x64.msi` + 便携 `.zip` |
 
 每个二进制产物都附带同名的 `.sha256` 校验文件，并汇总为 `SHA256SUMS`。

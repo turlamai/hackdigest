@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=HackDigest
+Comment=Hacker News with built-in translation and AI digests
+Exec=HackDigest
+Icon=site.jrtx.hackdigest
+Terminal=false
+Categories=Network;Utility;
+StartupWMClass=HackDigest

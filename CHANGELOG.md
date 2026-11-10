@@ -5,6 +5,26 @@ All notable changes to HackDigest are documented here. Format follows
 semver. The Tauri line's history (v0.1.0–v0.5.1) lives in git history; its
 releases and tags were withdrawn.
 
+## Unreleased
+
+### Added
+
+- Flatpak bundles (`hackdigest-<version>-linux-<arch>.flatpak`, x64 and
+  arm64) join the Linux release set — the last format of the Linux
+  distribution contract (deb+rpm+AppImage+Flatpak+tar.gz). The bundle
+  runs the payload against the GNOME 50 runtime; readelf shows the
+  payload needs no modules beyond the runtime (glibc + libz only,
+  WebKitGTK/GTK3 and OpenSSL 3 ship in the runtime). `SHA256SUMS` now
+  covers 18 versioned payloads. A `flatpak-smoke` workflow builds and
+  boots the bundle against the latest release whenever `flatpak/` or
+  the release pipeline changes.
+
+### Changed
+
+- The release workflow's tag validation now calls
+  `scripts/check-release-version.sh` (the same offline gate CI runs on
+  every push) instead of an inline copy of the same checks.
+
 ## 0.5.0 - 2026-11-10
 
 Maintenance release: a data-robustness fix, the glaze dependency caught

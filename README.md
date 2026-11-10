@@ -28,7 +28,7 @@ three platforms:
 | Platform | Artifacts |
 |---|---|
 | macOS (Apple Silicon / Intel) | `hackdigest-<version>-macos-<arch>.dmg` + portable `.zip` (both architectures) |
-| Linux (x64 / arm64) | `hackdigest-<version>-linux-<arch>`: `.tar.gz` + `.deb` + `.rpm` + `.AppImage` + portable `.zip` — every format on both architectures |
+| Linux (x64 / arm64) | `hackdigest-<version>-linux-<arch>`: `.tar.gz` + `.deb` + `.rpm` + `.AppImage` + `.flatpak` + portable `.zip` — every format on both architectures |
 | Windows 10/11 (x64) | `hackdigest-<version>-windows-x64.msi` + portable `.zip` |
 
 Every release includes one checked `SHA256SUMS` covering all versioned binaries and the Ed25519-signed `update-manifest.json`. Individual checksum sidecars remain CI artifacts; duplicate versionless installers are not published.

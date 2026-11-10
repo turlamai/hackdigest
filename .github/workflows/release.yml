@@ -28,14 +28,9 @@ jobs:
             echo "manual dispatch: skipping tag validation, building from package.json version"
             exit 0
           fi
-          TAG="${GITHUB_REF_NAME#v}"
-          ROOT_VERSION=$(node -p "require('./package.json').version")
-          BACKEND_VERSION=$(sed -n 's/.*(define app-version "\([^"]*\)").*/\1/p' backend/main.rkt)
-          echo "tag=$TAG package.json=$ROOT_VERSION backend=$BACKEND_VERSION"
-          test -n "$BACKEND_VERSION" || { echo "::error::backend/main.rkt has no app-version"; exit 1; }
-          test "$TAG" = "$ROOT_VERSION" || { echo "::error::tag $TAG != package.json $ROOT_VERSION"; exit 1; }
-          test "$TAG" = "$BACKEND_VERSION" || { echo "::error::tag $TAG != backend app-version $BACKEND_VERSION"; exit 1; }
-          grep -q "^## $TAG" CHANGELOG.md || { echo "::error::CHANGELOG.md has no '## $TAG' section"; exit 1; }
+          # Same offline gate ci.yml runs on every push, with the tag as
+          # the extra input (mirrors scripts/check-release-version.sh).
+          bash scripts/check-release-version.sh "$GITHUB_REF_NAME"
       - name: Require Ed25519 update signing secret before packaging
         if: github.event_name == 'push'
         shell: bash
@@ -673,6 +668,41 @@ jobs:
           wait "$run_pid" || status=$?
           [ "$status" -eq 0 ] || { echo "::error::AppImage selftest failed (exit $status)"; exit 1; }
 
+      # Flatpak bundle from the tar.gz built above (the Linux distribution
+      # contract's last format). The manifest template declares the exact
+      # dependency closure against the GNOME 50 runtime (see the readelf
+      # evidence in flatpak/site.jrtx.hackdigest.yml — no extra modules).
+      - name: Flatpak bundle
+        run: |
+          set -euo pipefail
+          ARCH="${{ matrix.arch }}"
+          case "$ARCH" in x64) FPARCH=x86_64 ;; arm64) FPARCH=aarch64 ;; esac
+          sudo apt-get install --yes flatpak flatpak-builder
+          # User-level everything: runner accounts install runtimes and
+          # build without root. GNOME 50 is the oldest supported platform
+          # runtime (48 went EOL 2026-03-24); its glibc covers the
+          # ubuntu-24.04-built payload.
+          flatpak --user remote-add --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub \
+            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
+          # The manifest template carries version/arch/sha placeholders so
+          # the archive source's checksum is exact per release. The tar.gz
+          # sits at the repo root ("Tar the distribution" above).
+          tarball="hackdigest-$VERSION-linux-${ARCH}.tar.gz"
+          test -s "$tarball"
+          SHA="$(sha256sum "$tarball" | cut -d' ' -f1)"
+          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${ARCH}/" \
+              -e "s/__SHA256__/${SHA}/" \
+              flatpak/site.jrtx.hackdigest.yml > site.jrtx.hackdigest.gen.yml
+          # --disable-rofiles-fuse: runners have no /dev/fuse.
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build site.jrtx.hackdigest.gen.yml
+          flatpak build-bundle flatpak-repo \
+            "hackdigest-$VERSION-linux-${ARCH}.flatpak" site.jrtx.hackdigest stable
+          rm -rf flatpak-build flatpak-repo site.jrtx.hackdigest.gen.yml
+          test -f "hackdigest-$VERSION-linux-${ARCH}.flatpak"
+
       # Portable zip: same self-contained tree the tar.gz carries.
       - name: Portable zip (self-contained folder at the archive root)
         run: |
@@ -704,6 +734,8 @@ jobs:
             hackdigest-*-linux-*.rpm.sha256
             hackdigest-*-linux-${{ matrix.arch }}.AppImage
             hackdigest-*-linux-${{ matrix.arch }}.AppImage.sha256
+            hackdigest-*-linux-${{ matrix.arch }}.flatpak
+            hackdigest-*-linux-${{ matrix.arch }}.flatpak.sha256
             hackdigest-*-linux-${{ matrix.arch }}.zip
             hackdigest-*-linux-${{ matrix.arch }}.zip.sha256
           if-no-files-found: error
@@ -1072,7 +1104,8 @@ jobs:
             windows-x64.msi windows-x64.zip \
             linux-arm64.tar.gz linux-arm64.zip linux-x64.tar.gz linux-x64.zip \
             linux-arm64.deb linux-x64.deb \
-            linux-arm64.AppImage linux-x64.AppImage; do
+            linux-arm64.AppImage linux-x64.AppImage \
+            linux-arm64.flatpak linux-x64.flatpak; do
             name="hackdigest-$VERSION-$suffix"
             test -s "dist/$name" || { echo "::error::Missing $name"; exit 1; }
             cp "dist/$name" public/
@@ -1085,7 +1118,7 @@ jobs:
           test -s dist/update-manifest.json
           cp dist/update-manifest.json public/
           (cd public && sha256sum hackdigest-* | LC_ALL=C sort -k2 > SHA256SUMS && sha256sum -c SHA256SUMS)
-          test "$(grep -c '^' public/SHA256SUMS)" -eq 16
+          test "$(grep -c '^' public/SHA256SUMS)" -eq 18
       - name: Publish release (notes from CHANGELOG)
         env:
           GH_TOKEN: ${{ github.token }}
