@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 release="$ROOT/.github/workflows/release.yml"
 backend="$ROOT/backend/update.rkt"
+update_check="$ROOT/backend/update-check.rkt"
 signer="$ROOT/scripts/make-update-manifest.sh"
 require() { grep -Fq -- "$1" "$release" || { echo "missing release guard: $1" >&2; exit 1; }; }
 require 'Require Ed25519 update signing secret before packaging'
@@ -17,7 +18,10 @@ if grep -Fq 'release ships without an update manifest' "$release"; then
 fi
 grep -Fq 'https://github.com/turlamai/hackdigest/releases' "$backend"
 grep -Fq 'https://github.com/turlamai/hackdigest/releases/download' "$signer"
-if grep -Fq 'turinglambdaai/hackdigest' "$backend" "$signer"; then
+# update-check.rkt (startup detection) must also name only the canonical
+# origin: the legacy-org endpoints 404 and silently disable the banner.
+grep -Fq '/repos/turlamai/hackdigest/releases/latest' "$update_check"
+if grep -Fq 'turinglambdaai/hackdigest' "$backend" "$update_check" "$signer"; then
   echo 'legacy update origin remains' >&2; exit 1
 fi
 echo 'release-signing: mandatory Ed25519 feed and canonical update URLs verified'
