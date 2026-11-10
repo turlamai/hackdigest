@@ -70,9 +70,9 @@ export default function ShortcutSettings() {
   };
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
-      <div className="mb-1 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{t.shortcutsTitle}</h2>
+    <section className="mt-6">
+      <div className="mb-1 flex items-center justify-between border-b border-line pb-2">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-mute">{t.shortcutsTitle}</h2>
         <button
           className="rounded-md border border-line px-2 py-1 text-[11px] text-mute hover:text-ink"
           onClick={() => patch({ shortcuts: { ...DEFAULT_SHORTCUTS } })}
@@ -80,7 +80,7 @@ export default function ShortcutSettings() {
           {t.skReset}
         </button>
       </div>
-      <p className="mb-4 text-xs leading-relaxed text-mute">{t.skHint}</p>
+      <p className="mb-4 mt-2 text-xs leading-relaxed text-mute">{t.skHint}</p>
       <div className="grid grid-cols-1 gap-x-10 gap-y-1.5 sm:grid-cols-2">
         {KEY_LABELS.map(({ id, labelKey }) => (
           <div key={id} className="flex items-center justify-between gap-4 py-0.5">

@@ -14,7 +14,7 @@ export default function ShortcutsOverlay({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl"
+        className="w-full max-w-lg rounded-[10px] border border-line bg-surface p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">

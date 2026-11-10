@@ -23,8 +23,8 @@ const REPO_URL = 'https://github.com/turinglambdaai/hackdigest';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
-      <h2 className="mb-4 text-sm font-semibold">{title}</h2>
+    <section className="mt-6 first:mt-0">
+      <h2 className="mb-1 border-b border-line pb-2 text-xs font-bold uppercase tracking-wider text-mute">{title}</h2>
       {children}
     </section>
   );
@@ -32,7 +32,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="mb-3 flex items-center justify-between gap-4 text-sm">
+    <label className="flex items-center justify-between gap-4 border-b border-line/60 py-3 text-sm last:border-b-0">
       <span className="text-ink/80">{label}</span>
       {children}
     </label>
@@ -40,7 +40,23 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 const inputCls =
-  'w-56 rounded-lg border border-line bg-raised px-2.5 py-1.5 text-sm outline-none focus:ring-1 focus:ring-accent/50';
+  'w-56 rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm outline-none focus:ring-1 focus:ring-accent/50';
+
+// Switch control per DESIGN.md: accent track only in the on state, knob
+// stays white in both themes.
+function Switch({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      className={`relative h-[22px] w-9 shrink-0 rounded-full transition-colors ${on ? 'bg-accent' : 'bg-line'}`}
+      onClick={onToggle}
+    >
+      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${on ? 'left-[18px]' : 'left-0.5'}`} />
+    </button>
+  );
+}
 
 export default function SettingsPage() {
   const { t } = useI18n();
@@ -123,7 +139,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 px-5 py-6">
+    <div className="mx-auto max-w-2xl px-6 py-6">
       <Section title={t.settingsAppearance}>
         <Row label={t.language}>
           <select className={inputCls} value={settings.uiLang} onChange={(e) => patch({ uiLang: e.target.value as 'zh' | 'en' })}>
@@ -236,20 +252,10 @@ export default function SettingsPage() {
               </Row>
             )}
             <Row label={t.autoTranslateTitlesLabel}>
-              <button
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium ${settings.autoTranslateTitles ? 'bg-accent text-white' : 'border border-line text-mute hover:text-ink'}`}
-                onClick={() => patch({ autoTranslateTitles: !settings.autoTranslateTitles })}
-              >
-                {settings.autoTranslateTitles ? t.on : t.off}
-              </button>
+              <Switch on={settings.autoTranslateTitles} onToggle={() => patch({ autoTranslateTitles: !settings.autoTranslateTitles })} />
             </Row>
             <Row label={t.autoTranslateLabel}>
-              <button
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium ${settings.autoTranslateOnScroll ? 'bg-accent text-white' : 'border border-line text-mute hover:text-ink'}`}
-                onClick={() => patch({ autoTranslateOnScroll: !settings.autoTranslateOnScroll })}
-              >
-                {settings.autoTranslateOnScroll ? t.on : t.off}
-              </button>
+              <Switch on={settings.autoTranslateOnScroll} onToggle={() => patch({ autoTranslateOnScroll: !settings.autoTranslateOnScroll })} />
             </Row>
             <Row label={t.targetLang}>
               <select className={inputCls} value={settings.translateTarget} onChange={(e) => patch({ translateTarget: e.target.value })}>
@@ -262,7 +268,7 @@ export default function SettingsPage() {
             </Row>
             <div className="mt-2 flex items-center gap-3">
               <button
-                className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+                className="rounded-md bg-accentsoft px-3 py-1.5 text-xs font-semibold text-accent hover:opacity-90 disabled:opacity-50"
                 onClick={runTest}
                 disabled={!llm.baseUrl || !llm.model || testState === 'running'}
               >
@@ -285,7 +291,7 @@ export default function SettingsPage() {
         </Row>
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <button
-            className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-md bg-accentsoft px-3 py-1.5 text-xs font-semibold text-accent hover:opacity-90 disabled:opacity-50"
             disabled={updateState === 'checking' || updateState === 'found'}
             onClick={async () => {
               setUpdateState('checking');
@@ -307,8 +313,8 @@ export default function SettingsPage() {
           </button>
           {updateState === 'found' && update && update.mode !== 'page' && flow.phase === 'found' && (
             <button
-              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
-              onClick={() => void flow.download()}
+                className="rounded-md bg-accentsoft px-3 py-1.5 text-xs font-semibold text-accent hover:opacity-90"
+                onClick={() => void flow.download()}
             >
               {t.updateDownload}
             </button>
@@ -318,17 +324,17 @@ export default function SettingsPage() {
           )}
           {updateState === 'found' && update && flow.phase === 'downloaded' && !update.mode.includes('manual') && (
             <button
-              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
-              onClick={() => void flow.install()}
-            >
-              {t.updateReadyInstall}
+                className="rounded-md bg-accentsoft px-3 py-1.5 text-xs font-semibold text-accent hover:opacity-90"
+                onClick={() => void flow.install()}
+              >
+                {t.updateReadyInstall}
             </button>
           )}
           {updateState === 'found' && update && flow.phase === 'downloaded' && update.mode === 'manual' && (
             <>
               <span className="text-xs text-mute">{t.updateManualHint}</span>
               <button
-                className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                className="rounded-md bg-accentsoft px-3 py-1.5 text-xs font-semibold text-accent hover:opacity-90"
                 onClick={() => void flow.install()}
               >
                 {t.updateOpenFolder}
