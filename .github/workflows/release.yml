@@ -490,7 +490,10 @@ jobs:
       # recipe: a generated spec, a STAGED tree copied into the buildroot
       # in %install, no %dist tag (one rpm validates on any rpm-based
       # distribution), and the libtinfo exclude that keeps the Ubuntu-built
-      # Racket runtime installable on Fedora. Requires names what the app
+      # Racket runtime installable on Fedora. %files paths stay unquoted:
+      # rpm >= 4.19 stopped globbing quoted entries, so "/opt/..." with a
+      # wildcard failed as a literal '*' filename on ubuntu-latest while
+      # the older rpm on the arm image still globbed (v0.5.0 first tag). Requires names what the app
       # FFI-loads at runtime — the same set the deb Depends declares
       # (Fedora spellings: gtk3, webkit2gtk4.1, openssl-libs).
       - name: Package rpm
@@ -555,11 +558,11 @@ jobs:
           cp -a "%{_topdir}/STAGED/." "%{buildroot}/"
 
           %files
-          %dir "/opt/hackdigest"
-          "/opt/hackdigest/*"
-          "/usr/bin/hackdigest"
-          "/usr/share/applications/hackdigest.desktop"
-          "/usr/share/pixmaps/hackdigest.png"
+          %dir /opt/hackdigest
+          /opt/hackdigest/*
+          /usr/bin/hackdigest
+          /usr/share/applications/hackdigest.desktop
+          /usr/share/pixmaps/hackdigest.png
           EOF
           sed -i "s/__HD_VERSION__/$VERSION/; s/__HD_ARCH__/$rpm_arch/" "$topdir/SPECS/hackdigest.spec"
           rpmbuild -bb --define="_topdir $topdir" \
