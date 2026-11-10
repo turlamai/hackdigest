@@ -1,7 +1,7 @@
 {
   "name": "hackdigest",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "packageManager": "pnpm@11.3.0",
   "scripts": {
     "dev": "pnpm --filter @hackdigest/desktop dev",

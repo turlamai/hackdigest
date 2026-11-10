@@ -5,6 +5,27 @@ All notable changes to HackDigest are documented here. Format follows
 semver. The Tauri line's history (v0.1.0–v0.5.1) lives in git history; its
 releases and tags were withdrawn.
 
+## 0.5.0 - 2026-11-10
+
+Maintenance release: a data-robustness fix, the glaze dependency caught
+up to its first tagged release, and the product site moves onto the
+family design system. No new features; the app's settings schema and
+routes are unchanged.
+
+### Fixed
+
+- A UTF-8 BOM in `settings.json` (produced by BOM-emitting editors such as PowerShell 5.1's `Set-Content -Encoding UTF8` or legacy Notepad saves) made `read-json` throw, and the reader's error handler silently turned the whole configuration into an empty map — the provider config vanished with no diagnostics and the startup key migration saw no key. The data-file reader now strips a leading BOM once, for `settings.json` and `library.json` alike, and notes it on stderr (#47, regression-tested).
+- Windows WebView2 controller creation failing with `E_ABORT` when several app instances or windows raced the machine-wide `glaze-webview2` user-data folder: absorbed by the glaze v0.18.0 pin (one data folder per process, `GLAZE_WEBVIEW2_DATA_DIR` for a stable cache path) together with automatic retries for transient controller aborts.
+
+### Changed
+
+- The glaze pin flips from the 0.4-era main head (`671ea4d`) to the **v0.18.0** release across CI and release workflows. Runtime deltas absorbed: per-process WebView2 data folders on Windows, atomic directory replacement in the updater, AppImage payload resolution through `$APPDIR`, Applications drop target and unique volume names for plain dmg builds, and a native Windows ARM64 webview backend. Schema compatibility verified (zero breaking changes); all four packaged-native CI legs selftest the v0.18.0 build.
+- The product site homepage is rebuilt on the family site-kit (v1.0.3): family design system (terracotta accent, Newsreader display), browser-locale language detection with a persisted override, and a unified download resolver over the real release assets.
+
+### Release infrastructure
+
+- A keep-alive regression test locks in the #40 finding (the reported persistent-connection misframe was a mock artifact — `llm.rkt` opens a fresh connection per request and Racket sends `Connection: close` by default): 30 sequential titles batches against a real keep-alive server with server-side framing/parse assertions.
+
 ## 0.4.0 - 2026-11-08
 
 ### Added
