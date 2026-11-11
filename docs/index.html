@@ -12,8 +12,9 @@
     <meta property="og:description" content="内置翻译与三层 AI 摘要的 HN 阅读器。自带 API Key 全功能免费，Windows / macOS / Linux。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://hackdigest.jrtx.site/">
-    <meta property="og:image" content="https://hackdigest.jrtx.site/assets/icon.png">
-    <meta name="twitter:card" content="summary">
+    <meta property="og:image" content="https://hackdigest.jrtx.site/assets/app-feed-light.png">
+    <meta property="og:image:alt" content="HackDigest 桌面主窗：Hacker News 信息流、随行译文与键盘提示">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="HackDigest — 把 Hacker News 读成中文">
     <meta name="twitter:description" content="内置翻译与三层 AI 摘要的 HN 阅读器。自带 API Key 全功能免费，Windows / macOS / Linux。">
 
@@ -115,7 +116,7 @@
                 <div class="vs-intro">
                     <span class="vs-label">PRODUCT IN CONTEXT · 产品如何工作</span>
                     <h2 class="kit-h2" data-i18n="vs.title">从技术新闻到能快速理解的内容。</h2>
-                    <p class="kit-lead" data-i18n="vs.lead">消息源仍属于原作者。用户自备模型密钥时，按需翻译与摘要；不暗示托管订阅已开放。</p>
+                    <p class="kit-lead" data-i18n="vs.lead">消息源仍属于原作者。翻译与摘要按需进行，由你自己的模型密钥驱动，费用只随你的用量走。</p>
                 </div>
                 <div class="vs-frame">
                     <div class="vs-art vs-task-art">
@@ -167,8 +168,48 @@
             </div>
         </section>
 
+        <!-- Experience details pinned by the design prototype -->
+        <section class="kit-section kit-section--alt" id="experience">
+            <div class="kit-container">
+                <h2 class="kit-h2" data-i18n="exp.title">快、透明、可回溯</h2>
+                <p class="kit-lead" data-i18n="exp.desc">信息流只是入口。HackDigest 把阅读体验钉在三件事上：手不离键盘、译文不覆盖原文、处理进度看得见。</p>
+                <div class="kit-grid kit-grid--2" style="margin-top: 44px;">
+                    <div class="kit-card">
+                        <span class="kit-card-icon" aria-hidden="true">⌨️</span>
+                        <h3 data-i18n="exp.k1.title">键盘一等公民</h3>
+                        <p class="exp-keys">
+                            <kbd>j</kbd><kbd>k</kbd> <span data-i18n="exp.k1.move">选择</span> ·
+                            <kbd>1</kbd>–<kbd>6</kbd> <span data-i18n="exp.k1.feeds">切换信息流</span> ·
+                            <kbd>t</kbd> <span data-i18n="exp.k1.translate">翻译标题</span> ·
+                            <kbd>shift</kbd><kbd>t</kbd> <span data-i18n="exp.k1.page">整页 / 全部评论</span> ·
+                            <kbd>d</kbd> <span data-i18n="exp.k1.digest">摘要</span> ·
+                            <kbd>s</kbd> <span data-i18n="exp.k1.bookmark">书签</span> ·
+                            <kbd>/</kbd> <span data-i18n="exp.k1.search">搜索</span> ·
+                            <kbd>?</kbd> <span data-i18n="exp.k1.help">速查</span>
+                        </p>
+                        <p data-i18n="exp.k1.desc">手不离键盘完成全流程，鼠标随时可用；按 ? 呼出速查表，新键位一屏学会。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon" aria-hidden="true">📖</span>
+                        <h3 data-i18n="exp.k2.title">译文与原文并列</h3>
+                        <p data-i18n="exp.k2.desc">翻译永不覆盖原文：标题译文随行显示，评论逐条翻译，摘要展开即回原文。每条译文都标注来源与状态（机译），可追溯、可回看。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon" aria-hidden="true">🔄</span>
+                        <h3 data-i18n="exp.k3.title">状态永不静默</h3>
+                        <p data-i18n="exp.k3.desc">翻译与摘要都有进行态与完成态徽标：按下即见「翻译中」，完成后「TL;DR 已生成」「机译」徽标常驻，后台任务始终可感知。</p>
+                    </div>
+                    <div class="kit-card">
+                        <span class="kit-card-icon" aria-hidden="true">🔐</span>
+                        <h3 data-i18n="exp.k4.title">自带密钥，全功能免费</h3>
+                        <p data-i18n="exp.k4.desc">配置任意 OpenAI 兼容端点即解锁全部功能，应用本身免费开源。v0.4.0 起密钥默认存入系统钥匙串（Keychain / Credential Manager / Secret Service），不落明文。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Download -->
-        <section class="kit-section kit-section--alt" id="download">
+        <section class="kit-section" id="download">
             <div class="kit-container">
                 <h2 class="kit-h2" data-i18n="dl.title">下载</h2>
                 <p class="kit-lead" data-i18n="dl.desc">所有安装包由 GitHub CI 从源码构建，并通过三平台启动冒烟验证。v0.3.0 起内置应用内更新：启动时拉取 Ed25519 签名清单，macOS / Windows 便携安装原地换装，Linux 下载归档后引导安装；安装器渠道（DMG / MSI / deb / rpm）直达发布页。</p>
@@ -194,11 +235,11 @@
         </section>
 
         <!-- Get started -->
-        <section class="kit-section" id="start-here">
+        <section class="kit-section kit-section--alt" id="start-here">
             <div class="kit-container">
                 <h2 class="kit-h2" data-i18n="start.title">从一次有效使用开始。</h2>
                 <p class="kit-hero-meta" style="margin-top: 20px;"><span class="kit-badge" data-i18n="start.status">全部客户端功能可免费使用自己的模型密钥，模型费用另计。托管翻译尚未开放购买。</span></p>
-                <p class="kit-lead" data-i18n="start.body">基于 Glaze 的 macOS、Windows、Linux 桌面预览。原生传输、打包行为和密钥存储一致性仍需发行验收。</p>
+                <p class="kit-lead" data-i18n="start.body">基于 Glaze 的 macOS、Windows、Linux 桌面预览。三平台默认原生传输，密钥默认存入系统钥匙串，打包自检随每个发行版跑一遍。</p>
                 <div class="kit-steps" style="margin-top: 44px;">
                     <div class="kit-step">
                         <p data-i18n="start.s1">打开一个信息流，先阅读一条原文。</p>
@@ -210,7 +251,7 @@
                         <p data-i18n="start.s3">生成一份文章或讨论摘要，对照原文，并检查服务商用量后再批量处理。</p>
                     </div>
                 </div>
-                <p class="start-limits kit-text-2"><span data-i18n="start.limits-a">Windows/Linux 打包原生一致性和密钥存储仍在 </span><a href="https://github.com/turlamai/hackdigest/issues/2">#2</a><span data-i18n="start.limits-b">跟进。不包含移动端或托管同步服务。</span></p>
+                <p class="start-limits kit-text-2"><span data-i18n="start.limits-a">打包与密钥存储的发行验收已落地；托管翻译等后续方向仍在 </span><a href="https://github.com/turlamai/hackdigest/issues/2">#2</a><span data-i18n="start.limits-b">跟进。不包含移动端或托管同步服务。</span></p>
                 <div class="start-links">
                     <a href="https://github.com/turlamai/hackdigest/blob/main/docs/USER-GUIDE.zh-CN.md" data-en-href="https://github.com/turlamai/hackdigest/blob/main/docs/USER-GUIDE.md" data-i18n="start.guide">安装、隐私与恢复</a>
                     <a href="https://github.com/turlamai/hackdigest/issues" data-i18n="start.help">反馈与帮助</a>
@@ -277,9 +318,8 @@
             "dl.generic": "免费下载桌面版",
             "dl.win": "免费下载 Windows 版", "dl.mac": "免费下载 macOS 版", "dl.linux": "免费下载 Linux 版",
             "dl.menu-note": "移动端与未知平台请前往 Releases 页面选取对应安装包。",
-            "feed.top": "热门", "feed.new": "最新", "feed.ask": "Ask HN", "feed.daily": "今日晨报",
             "vs.title": "从技术新闻到能快速理解的内容。",
-            "vs.lead": "消息源仍属于原作者。用户自备模型密钥时，按需翻译与摘要；不暗示托管订阅已开放。",
+            "vs.lead": "消息源仍属于原作者。翻译与摘要按需进行，由你自己的模型密钥驱动，费用只随你的用量走。",
             "vs.s1t": "浏览原文", "vs.s1b": "保留可追溯来源",
             "vs.s2t": "按需理解", "vs.s2b": "使用自己配置的模型",
             "vs.s3t": "提炼观点", "vs.s3b": "查看文章与讨论摘要",
@@ -289,6 +329,19 @@
             "digests.d1.title": "文章 TL;DR", "digests.d1.desc": "HN 链接的原文动辄五千词英文。一键压缩成几段中文摘要，先知道值不值得读，再决定要不要读。",
             "digests.d2.title": "评论区观点提炼", "digests.d2.desc": "HN 的精华在评论区。八百条英文回复，提炼成正反双方核心论点、值得一看的发言、以及社区的最终倾向。",
             "digests.d3.title": "每日晨报", "digests.d3.desc": "今早的首页变成两分钟中文晨读：按主题分组、每条一句话为什么值得看，喝口咖啡决定今天深读哪几篇。",
+            "exp.title": "快、透明、可回溯",
+            "exp.desc": "信息流只是入口。HackDigest 把阅读体验钉在三件事上：手不离键盘、译文不覆盖原文、处理进度看得见。",
+            "exp.k1.title": "键盘一等公民",
+            "exp.k1.move": "选择", "exp.k1.feeds": "切换信息流", "exp.k1.translate": "翻译标题",
+            "exp.k1.page": "整页 / 全部评论", "exp.k1.digest": "摘要", "exp.k1.bookmark": "书签",
+            "exp.k1.search": "搜索", "exp.k1.help": "速查",
+            "exp.k1.desc": "手不离键盘完成全流程，鼠标随时可用；按 ? 呼出速查表，新键位一屏学会。",
+            "exp.k2.title": "译文与原文并列",
+            "exp.k2.desc": "翻译永不覆盖原文：标题译文随行显示，评论逐条翻译，摘要展开即回原文。每条译文都标注来源与状态（机译），可追溯、可回看。",
+            "exp.k3.title": "状态永不静默",
+            "exp.k3.desc": "翻译与摘要都有进行态与完成态徽标：按下即见「翻译中」，完成后「TL;DR 已生成」「机译」徽标常驻，后台任务始终可感知。",
+            "exp.k4.title": "自带密钥，全功能免费",
+            "exp.k4.desc": "配置任意 OpenAI 兼容端点即解锁全部功能，应用本身免费开源。v0.4.0 起密钥默认存入系统钥匙串（Keychain / Credential Manager / Secret Service），不落明文。",
             "dl.title": "下载",
             "dl.desc": "所有安装包由 GitHub CI 从源码构建，并通过三平台启动冒烟验证。v0.3.0 起内置应用内更新：启动时拉取 Ed25519 签名清单，macOS / Windows 便携安装原地换装，Linux 下载归档后引导安装；安装器渠道（DMG / MSI / deb / rpm）直达发布页。",
             "dl.hint.win": "Windows 10/11 · MSI",
@@ -297,11 +350,11 @@
             "dl.all": "全部版本",
             "start.title": "从一次有效使用开始。",
             "start.status": "全部客户端功能可免费使用自己的模型密钥，模型费用另计。托管翻译尚未开放购买。",
-            "start.body": "基于 Glaze 的 macOS、Windows、Linux 桌面预览。原生传输、打包行为和密钥存储一致性仍需发行验收。",
+            "start.body": "基于 Glaze 的 macOS、Windows、Linux 桌面预览。三平台默认原生传输，密钥默认存入系统钥匙串，打包自检随每个发行版跑一遍。",
             "start.s1": "打开一个信息流，先阅读一条原文。",
             "start.s2": "需要翻译时，配置自己的兼容模型端点和密钥，先测试一条标题。",
             "start.s3": "生成一份文章或讨论摘要，对照原文，并检查服务商用量后再批量处理。",
-            "start.limits-a": "Windows/Linux 打包原生一致性和密钥存储仍在 ",
+            "start.limits-a": "打包与密钥存储的发行验收已落地；托管翻译等后续方向仍在 ",
             "start.limits-b": " 跟进。不包含移动端或托管同步服务。",
             "start.guide": "安装、隐私与恢复", "start.help": "反馈与帮助",
             "footer.tagline": "把 Hacker News 读成中文。",
@@ -318,9 +371,8 @@
             "dl.generic": "Download desktop — free",
             "dl.win": "Download for Windows — free", "dl.mac": "Download for macOS — free", "dl.linux": "Download for Linux — free",
             "dl.menu-note": "On mobile or unknown platforms, pick the right package from the Releases page.",
-            "feed.top": "Top", "feed.new": "New", "feed.ask": "Ask HN", "feed.daily": "Daily digest",
             "vs.title": "From tech news to ideas you can digest.",
-            "vs.lead": "Original authors remain the source. Use your own model provider for optional translation and digests; hosted subscriptions are not open.",
+            "vs.lead": "Original authors remain the source. Translation and digests run on demand, on your own model key, at your provider's prices.",
             "vs.s1t": "Read original", "vs.s1b": "Keep original source links",
             "vs.s2t": "Translate", "vs.s2b": "Use your own model provider",
             "vs.s3t": "Digest", "vs.s3b": "Review article and thread digests",
@@ -330,6 +382,19 @@
             "digests.d1.title": "Article TL;DR", "digests.d1.desc": "HN links to 5,000-word essays. Compress each into a few paragraphs in your language — know if it is worth reading before you read it.",
             "digests.d2.title": "Thread digest", "digests.d2.desc": "The gold of HN is the comments. 800 replies become the top arguments on each side, standout comments, and where the community landed.",
             "digests.d3.title": "Daily digest", "digests.d3.desc": "This morning's front page as a two-minute read: grouped by theme, one line on why each story matters.",
+            "exp.title": "Fast, transparent, traceable",
+            "exp.desc": "The feed is just the entry point. HackDigest pins the reading experience to three things: hands on the keyboard, translation beside the original, and progress you can see.",
+            "exp.k1.title": "Keyboard-first, truly",
+            "exp.k1.move": "move", "exp.k1.feeds": "switch feeds", "exp.k1.translate": "translate title",
+            "exp.k1.page": "page / all comments", "exp.k1.digest": "digest", "exp.k1.bookmark": "bookmark",
+            "exp.k1.search": "search", "exp.k1.help": "shortcuts",
+            "exp.k1.desc": "The whole flow works hands-on-keyboard; the mouse stays available. Press ? for the cheat sheet and learn every key on one screen.",
+            "exp.k2.title": "Translation beside the original",
+            "exp.k2.desc": "Translation never replaces the original: translated titles ride along, comments translate line by line, and every digest expands back to the source. Each translation carries its source and status label (machine-translated) — traceable and revisitable.",
+            "exp.k3.title": "Progress never goes silent",
+            "exp.k3.desc": "Translation and digests show in-progress and done badges: press the key and you see it working; when it lands, a \"TL;DR ready\" or \"machine-translated\" chip stays put. Background work stays visible.",
+            "exp.k4.title": "Your key, every feature free",
+            "exp.k4.desc": "Point it at any OpenAI-compatible endpoint and every feature unlocks — the app itself is free and open source. Since v0.4.0 the key lives in the system keyring (Keychain / Credential Manager / Secret Service) by default, never in plaintext.",
             "dl.title": "Download",
             "dl.desc": "Every installer is built from source by GitHub CI and launch-smoke-tested on all three platforms. In-app updates ship as of v0.3.0: the app fetches an Ed25519-signed manifest on startup, portable installs on macOS and Windows swap in place, Linux downloads the archive and reveals it — installer channels (DMG / MSI / deb / rpm) point at the release page.",
             "dl.hint.win": "Windows 10/11 · MSI",
@@ -338,11 +403,11 @@
             "dl.all": "All releases",
             "start.title": "Start with one useful session.",
             "start.status": "All client features are free with your own model key; provider charges apply. Hosted translation is not open for purchase.",
-            "start.body": "Desktop previews for macOS, Windows and Linux on Glaze. Native transport, packaged behavior and secret-storage parity still require release qualification.",
+            "start.body": "Desktop previews for macOS, Windows and Linux on Glaze. Native transport by default on all three platforms, keys in the system keyring by default, packaged self-tests on every release.",
             "start.s1": "Open a feed and read one story in its original form.",
             "start.s2": "If you want translation, configure your own compatible model endpoint/key and test one title first.",
             "start.s3": "Request one article or thread digest, compare it with the original and review provider usage before starting bulk requests.",
-            "start.limits-a": "Windows/Linux packaged native parity and secret storage remain tracked in ",
+            "start.limits-a": "Packaged-native and secret-storage release qualification has shipped; follow-on work, including hosted translation, remains tracked in ",
             "start.limits-b": ". No mobile or hosted-sync service is included.",
             "start.guide": "Installation, privacy & recovery", "start.help": "Get help",
             "footer.tagline": "Hacker News, in your language.",

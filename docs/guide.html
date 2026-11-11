@@ -141,7 +141,7 @@ var _hmt = _hmt || [];
                     <li data-i18n="dig_2"><strong>评论区观点提炼</strong>—— 同一个 <code>d</code>：八百条回复提炼成正反论点与社区倾向。配合 <code>Shift+T</code> 先通读翻译，再读提炼。</li>
                     <li data-i18n="dig_3"><strong>每日晨报</strong>—— 侧栏「今日晨报」（或按 <code>6</code>）：今早首页两分钟读完，按主题分组。</li>
                 </ul>
-                <p data-i18n="dig_note">摘要按次调用所选引擎，长文消耗相应 token；托管版走全局共享缓存，命中即免费。</p>
+                <p data-i18n="dig_note">摘要按次调用所选引擎，长文消耗相应 token；费用只随你自己的模型用量走。</p>
             </section>
 
             <!-- =================== Reading =================== -->
@@ -183,7 +183,7 @@ var _hmt = _hmt || [];
                 <h2 data-i18n="priv_title">🔒 隐私</h2>
                 <ul>
                     <li data-i18n="priv_1">无账号、无遥测。BYOK 模式下，翻译请求从本机直达你选的服务商。</li>
-                    <li data-i18n="priv_2">API key 由本地后端用于向你选择的服务商鉴权；尚不能将密钥存储描述为各平台均通过安全存储验收。不要分享配置文件。</li>
+                    <li data-i18n="priv_2">API key 由本地后端用于向你选择的服务商鉴权；v0.4.0 起密钥默认存入系统钥匙串（macOS Keychain / Windows 凭据管理器 / Linux Secret Service），设置里可显式选择明文存储。仍建议不要分享配置文件。</li>
                     <li data-i18n="priv_3">HN 数据来自官方 API 与 Algolia 搜索，不爬虫、不落地到我们的服务器。</li>
                     <li data-i18n="priv_4">托管翻译尚未开放，不把全局缓存或付费服务描述为已经交付。</li>
                 </ul>
@@ -200,7 +200,7 @@ var _hmt = _hmt || [];
                     <li data-i18n="plat_1"><strong>macOS</strong> —— Apple Silicon 与 Intel 双架构，.dmg 安装版 + .zip 便携版。</li>
                     <li data-i18n="plat_2"><strong>Windows</strong> —— Windows 10/11 x64，.msi 安装版 + .zip 便携版。</li>
                     <li data-i18n="plat_3"><strong>Linux</strong> —— x64 与 arm64 双架构，.tar.gz / .deb / .rpm / .AppImage / .zip 五种格式；需系统 WebKitGTK 4.1。</li>
-                    <li data-i18n="plat_4">移动端尚未交付；桌面原生传输、打包和密钥存储验收优先。</li>
+                    <li data-i18n="plat_4">移动端尚未交付；桌面三平台已默认原生传输，密钥默认存入系统钥匙串。</li>
                 </ul>
             </section>
 
@@ -270,7 +270,7 @@ var _hmt = _hmt || [];
                 dig_1: "<strong>Article TL;DR</strong> — press <code>d</code> in a thread: 5,000 words of English become a few paragraphs in your language.",
                 dig_2: "<strong>Thread digest</strong> — same <code>d</code>: 800 replies become the top arguments on each side and where the community landed. Pair with <code>Shift+T</code> to read the translations first.",
                 dig_3: "<strong>Daily digest</strong> — the \"Daily digest\" feed (or press <code>6</code>): this morning's front page as a two-minute read, grouped by theme.",
-                dig_note: 'Each digest is one call to your chosen engine; long articles cost proportional tokens. The hosted plan shares caches globally — a cache hit costs nothing.',
+                dig_note: 'Each digest is one call to your chosen engine; long articles cost proportional tokens. Costs follow your own model usage only.',
                 read_title: '📖 Reading preferences',
                 read_intro: 'All in Settings → Appearance:',
                 read_1: "<strong>Theme.</strong> Follow system / light / dark.",
@@ -287,7 +287,7 @@ var _hmt = _hmt || [];
                 data_2: 'The translation cache lives there too — a thread is translated once. Caches do not migrate across devices (re-translating is cheap).',
                 priv_title: '🔒 Privacy',
                 priv_1: 'No account, no telemetry. In BYOK mode, translation requests go from your machine straight to the provider you picked.',
-                priv_2: "The local backend uses the API key to authenticate to your chosen provider. Cross-platform secure storage has not been qualified; do not share configuration files.",
+                priv_2: "The local backend uses the API key to authenticate to your chosen provider. Since v0.4.0 the key lives in the system keyring by default (macOS Keychain / Windows Credential Manager / Linux Secret Service), with an explicit plaintext opt-out in Settings; avoid sharing configuration files regardless.",
                 priv_3: 'HN data comes from the official API and Algolia search — no scraping, nothing lands on our servers.',
                 priv_4: "Hosted translation is not open; a global cache or paid service is not a delivered offer.",
                 acct_title: '👤 Do I need an account?',
@@ -296,7 +296,7 @@ var _hmt = _hmt || [];
                 plat_1: "<strong>macOS</strong> — Apple Silicon and Intel, .dmg installer + portable .zip.",
                 plat_2: "<strong>Windows</strong> — Windows 10/11 x64, .msi installer + portable .zip.",
                 plat_3: "<strong>Linux</strong> — x64 and arm64, five formats: .tar.gz / .deb / .rpm / .AppImage / .zip; needs system WebKitGTK 4.1.",
-                plat_4: "Mobile is not delivered. Desktop native transport, packaging and secret-storage qualification take priority.",
+                plat_4: "Mobile is not delivered. All three desktop platforms run the native transport by default, and keys live in the system keyring by default.",
                 upd_title: '🔄 Updates',
                 upd_1: 'In-app updates ship as of v0.3.0: on startup the app fetches an Ed25519-signed manifest, and when a new version is out the next step depends on how you installed —',
                 upd_2: "<strong>Portable installs (macOS .zip / Windows .zip)</strong> — one click, swapped in place, automatic relaunch.",

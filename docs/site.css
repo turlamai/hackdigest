@@ -153,6 +153,26 @@ html[data-theme="dark"] .vs-glyph { color: var(--kit-accent); }
     background: linear-gradient(170deg, var(--kit-bg-elevated) 0%, var(--kit-accent-soft) 100%);
 }
 
+/* ---------- Experience cards: keyboard hints ---------- */
+/* DESIGN.md invariant 5: kbd = line background, mute ink, 6px radius. */
+.exp-keys {
+    margin-top: 4px;
+    line-height: 2.15;
+}
+.exp-keys kbd {
+    display: inline-block;
+    min-width: 1.7em;
+    padding: 0 6px;
+    margin: 0 1px;
+    border: 1px solid var(--kit-border);
+    border-radius: 6px;
+    background: var(--kit-surface-2);
+    color: var(--kit-text-2);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.7;
+}
+
 /* ---------- Download cards ---------- */
 .dl-card { color: var(--kit-text); }
 .dl-card:hover { color: var(--kit-text); }
