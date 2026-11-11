@@ -46,3 +46,9 @@ Tokens 提取自 `apps/desktop/src/styles.css` 现行值，保证原型 → Reac
 3. 亮暗主题成对设计，不存在只有暗态的界面。
 4. 译文永远标注来源与状态（机译/已校），摘要永远可展开回原文。
 5. 键盘提示用 `kbd` 样式统一：`line` 底、`mute` 字、6px 圆角。
+
+
+## 平台渲染差异（glaze 线）
+
+同一 HTML/CSS 三平台共享，交互天然一致；差异仅在 WebView 渲染微差与平台窗口 chrome
+（由宿主提供）。三渲染器（WKWebView / WebView2 / WebKitGTK）截图对照纳入平台验收。
