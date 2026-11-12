@@ -56,6 +56,19 @@ jobs:
           - arch: x64
             runner: macos-15-intel
             racket-arch: x64
+    env:
+      # Production signing lights up as soon as the account-level secrets
+      # exist (Developer ID p12 + App Store Connect API key). Credential
+      # contract: DEVELOPER_ID_P12_B64 / DEVELOPER_ID_P12_PASSWORD /
+      # ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_P8_B64; the same five values
+      # are shared across the product family. Glaze handles signing
+      # (--sign with hardened runtime); this workflow notarizes the
+      # artifacts it actually ships, since glaze's built-in --notarize
+      # would staple its own throwaway DMG, not ours.
+      MACOS_SIGNING_CONFIGURED: ${{ secrets.DEVELOPER_ID_P12_B64 != '' && secrets.ASC_KEY_P8_B64 != '' }}
+      # A tag push is a release: without credentials it must fail closed
+      # instead of silently shipping ad-hoc signed artifacts.
+      IS_TAG_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -106,7 +119,60 @@ jobs:
           iconutil -c icns "$ICONSET" -o dist/HackDigest.icns
           rm -rf "$ICONSET"
 
-      - name: Package app bundle
+      - name: Provision Developer ID certificate
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        env:
+          DEVELOPER_ID_P12_B64: ${{ secrets.DEVELOPER_ID_P12_B64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          P12="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          printf '%s' "$DEVELOPER_ID_P12_B64" | base64 --decode > "$P12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$P12" -k "$KEYCHAIN" -P "$DEVELOPER_ID_P12_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          security list-keychains -s "$KEYCHAIN" $(security list-keychains | tr -d '"')
+          rm -f "$P12"
+          IDENTITY_NAME="$(security find-identity -v -p codesigning "$KEYCHAIN" | grep 'Developer ID Application' | head -1 | sed -E 's/^[^"]*"(.*)"$/\1/')"
+          test -n "$IDENTITY_NAME"
+          {
+            echo "MACOS_SIGN_IDENTITY=$IDENTITY_NAME"
+          } >> "$GITHUB_ENV"
+      - name: Store notarytool keychain profile
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
+        run: |
+          set -euo pipefail
+          P8="$RUNNER_TEMP/asc-api-key.p8"
+          printf '%s' "$ASC_KEY_P8_B64" | base64 --decode > "$P8"
+          xcrun notarytool store-credentials ASC_NOTARY \
+            --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" --key "$P8"
+          rm -f "$P8"
+
+      # Glaze signs the nested Racket libraries and the bundle with the
+      # Developer ID identity (hardened runtime turns on automatically for
+      # real identities). No glaze --notarize: the artifacts we ship are
+      # the portable zip's .app and the hand-built DMG below, so this
+      # workflow notarizes those two directly.
+      - name: Package app bundle (Developer ID signed)
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        run: |
+          raco glaze build \
+            --entry backend/main.rkt \
+            --name HackDigest \
+            --version "$VERSION" \
+            --icon dist/HackDigest.icns \
+            --sign "$MACOS_SIGN_IDENTITY" \
+            --out dist
+      - name: Package app bundle (ad-hoc dispatch smoke)
+        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE != 'true'
         run: |
           raco glaze build \
             --entry backend/main.rkt \
@@ -115,6 +181,11 @@ jobs:
             --icon dist/HackDigest.icns \
             --sign - \
             --out dist
+      - name: Release requires signing credentials
+        if: env.MACOS_SIGNING_CONFIGURED != 'true' && env.IS_TAG_RELEASE == 'true'
+        run: |
+          echo "::error::Tag releases must be production-signed: set the macOS signing secrets (DEVELOPER_ID_P12_B64, DEVELOPER_ID_P12_PASSWORD, ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8_B64) on this repository before tagging."
+          exit 1
 
       # Two-phase smoke over the packaged artifact. Phase 1 is the
       # production shape: HACKDIGEST_SELFTEST drives the packaged binary in
@@ -172,6 +243,21 @@ jobs:
           code="$(curl -s -o /dev/null -w '%{http_code}' -m 5 "http://127.0.0.1:$port/")"
           [ "$code" = "200" ] || { echo "::error::frontend returned $code"; exit 1; }
 
+      # Notarize the .app and staple the ticket so the portable zip (the
+      # update-feed payload) passes Gatekeeper offline. ditto keeps the
+      # framework symlinks intact — a submission zip must be the exact
+      # bundle shape Apple notarizes.
+      - name: Notarize + staple the .app
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        run: |
+          set -euo pipefail
+          SUBMISSION="$RUNNER_TEMP/app-notary.zip"
+          rm -f "$SUBMISSION"
+          ditto -c -k --keepParent dist/HackDigest.app "$SUBMISSION"
+          xcrun notarytool submit "$SUBMISSION" --keychain-profile ASC_NOTARY --wait
+          xcrun stapler staple dist/HackDigest.app
+          rm -f "$SUBMISSION"
+
       - name: Portable zip (.app at the archive root)
         run: |
           # Written to the repo root (not dist/) so both artifact paths
@@ -213,6 +299,20 @@ jobs:
           [ -n "$attached" ] || { echo "::error::hdiutil attach failed after 3 attempts"; exit 1; }
           test -d /tmp/hd-dmg-verify/HackDigest.app
           hdiutil detach /tmp/hd-dmg-verify
+
+      # The shipped DMG is hand-built here, so notarize and staple it too;
+      # stapling rewrites the file, which is why this runs before the
+      # .sha256 sidecars are computed.
+      - name: Notarize + staple the DMG, verify production trust
+        if: env.MACOS_SIGNING_CONFIGURED == 'true'
+        run: |
+          set -euo pipefail
+          DMG="hackdigest-$VERSION-macos-${{ matrix.arch }}.dmg"
+          xcrun notarytool submit "$DMG" --keychain-profile ASC_NOTARY --wait
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate dist/HackDigest.app
+          xcrun stapler validate "$DMG"
+          spctl --assess --type execute dist/HackDigest.app
 
       - name: Per-asset .sha256 sidecars
         run: |
