@@ -114,7 +114,8 @@ hackdigest/
 ├── packages/core/    shared TypeScript core: HN API, storage, BYOK presets
 ├── design/           DESIGN.md visual contract + HTML prototypes (design gate)
 ├── assets/           app icon source (assets/icon-1024.png)
-└── docs/             product site (hackdigest.jrtx.site) + user guide
+├── site/             product site (hackdigest.jrtx.site)
+└── docs/             user guide + contributor docs
 ```
 
 ## License & business model

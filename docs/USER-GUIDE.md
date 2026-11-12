@@ -42,6 +42,6 @@ Report problems in [GitHub Issues](https://github.com/turlamai/hackdigest/issues
 
 ## Further reading
 
-- [Detailed manual](../docs/guide.html)
+- [Detailed manual](../site/guide.html)
 - [Project overview and development](../README.md)
 - [Current licence](../LICENSE)

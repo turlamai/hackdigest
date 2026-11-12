@@ -64,7 +64,8 @@ hackdigest/
 ├── apps/desktop/     React 前端（构建到 dist/，由后端托管）
 ├── apps/mobile/      Phase 3
 ├── packages/core/    共享 TypeScript 核心：HN API、存储、BYOK 预置
-└── docs/
+├── site/             产品官网（hackdigest.jrtx.site）
+└── docs/             用户手册与贡献者文档
 ```
 
 ## 许可与商业模式

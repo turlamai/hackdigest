@@ -42,6 +42,6 @@
 
 ## 深入阅读
 
-- [详细手册](../docs/guide.html)
+- [详细手册](../site/guide.html)
 - [项目说明与开发入口](../README.zh-CN.md)
 - [现行许可证](../LICENSE)

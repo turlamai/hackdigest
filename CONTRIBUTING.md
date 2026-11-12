@@ -57,14 +57,15 @@ build locally.
 
 ## Product site
 
-`docs/` is the published product site: GitHub Pages serves it straight
-from `main` (`/docs`, CNAME `hackdigest.jrtx.site`), so a push to main
-is a site deploy. Keep `docs/` self-contained — site-kit assets live in
-`docs/fonts/` and `docs/assets/`, versions pinned in `site-kit.version`
-— and never edit the generated `family.css` / `family.js` per-site;
-they come from [site-kit](https://github.com/turlamai/site-kit).
+`site/` is the published product site: the Pages workflow deploys it with
+the GitHub Actions build type (CNAME `hackdigest.jrtx.site`), so a push
+touching `site/` is a site deploy. Keep `site/` self-contained — site-kit
+assets live in `site/fonts/` and `site/assets/`, versions pinned in
+`site-kit.version` — and never edit the generated `family.css` /
+`family.js` per-site; they come from
+[site-kit](https://github.com/turlamai/site-kit).
 `CNAME` must not move, and links stay relative: the site runs at a
-subdomain root.
+subdomain root. User-facing Markdown documentation stays in `docs/`.
 
 ## Reporting issues
 
