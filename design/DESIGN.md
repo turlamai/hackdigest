@@ -18,18 +18,16 @@ Tokens 提取自 `apps/desktop/src/styles.css` 现行值，保证原型 → Reac
 - **防错一致**：跨平台快捷键语义一致；破坏性操作需确认。
 - **层级克制**：bg < raised < surface 三层足够；accent 只给交互与状态。
 
-## Tokens（与实现 1:1）
+## Tokens（语义；值不在此复制）
 
-| Token | Light | Dark | 用途 |
-|---|---|---|---|
-| `--bg` | `#faf9f7` | `#171512` | 画布 |
-| `--surface` | `#ffffff` | `#201d19` | 卡片/浮层 |
-| `--raised` | `#f3f1ec` | `#282420` | 悬浮/选中底 |
-| `--line` | `#e7e3da` | `#322e27` | 分隔 |
-| `--ink` | `#1f1d1a` | `#e8e4dc` | 主文字 |
-| `--mute` | `#8a8578` | `#90897a` | 次级文字 |
-| `--accent` | `#d9531e` | `#ff8a50` | 选中/链接/进行态/主按钮 |
-| `--accent-soft` | `#faeee5` | `#33241a` | accent 弱底（徽标） |
+值类 token 真源 = `apps/desktop/src/styles.css` 现行值；原型 `design/prototype/shared.css` 与其一一对应，本表只记语义与层级。
+
+| Token | 语义 |
+|---|---|
+| `--bg --surface --raised` | 画布 / 卡片浮层 / 悬浮选中底（三层封顶） |
+| `--line` | 分隔 |
+| `--ink --mute` | 主/次级文字 |
+| `--accent --accent-soft` | 选中/链接/进行态/主按钮 + 弱底徽标 |
 
 - **字体**：`system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei"`；正文 15px/1.6，行标题 600，次级 13px，辅助 12px。
 - **圆角**：窗口 12px · 卡片 8px · 控件 6px。**间距节奏**：4/8/12/16/24。**动效**：120ms ease，不过度。
