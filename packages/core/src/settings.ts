@@ -4,7 +4,7 @@
 
 import type { LLMConfig } from './llm';
 import { kvGet, kvSet } from './store';
-import { readDataFile, writeDataFile } from './dataFile';
+import { readDataFile, writeDataFile } from './data-file';
 import { apiPost, hasBackend } from './bridge';
 
 export interface Shortcuts {
