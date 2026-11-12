@@ -2,7 +2,7 @@
 
 (require rackunit
          racket/string
-         "native-smoke.rkt")
+         "../native-smoke.rkt")
 
 ;; The release-only fixture is synthetic and independent of real LLM
 ;; providers, user credentials, or the product's reviewed schema baseline.

@@ -9,7 +9,7 @@ HackDigest uses one Racket/Glaze backend in `backend/` and a React/Vite frontend
 `glaze.rktd` and `glaze-schema.json` own its reviewed application contract.
 
 Before changing routes run `raco glaze schema check --json`; update the baseline only for an intentional reviewed contract change.
-Validate with `raco test backend/`, `pnpm test`, `pnpm check`, and `pnpm build`.
+Validate with `raco test backend/tests/`, `pnpm test`, `pnpm check`, and `pnpm build`.
 Do not replace a failed native WebView with an external browser. All three platforms default to the native transport; `HACKDIGEST_TRANSPORT=http` is the explicit dev adapter (`GLAZE_API_TOKEN` applies to that adapter only). The release pipeline runs a packaged native selftest (`HACKDIGEST_SELFTEST=1`) on every platform before publishing.
 
 

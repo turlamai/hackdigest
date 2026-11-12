@@ -8,9 +8,9 @@
          racket/port
          racket/string
          rackunit
-         "data-files.rkt"
-         "llm.rkt"
-         "settings-rpc.rkt")
+         "../data-files.rkt"
+         "../llm.rkt"
+         "../settings-rpc.rkt")
 
 (define (roundtrip->jsexpr s)
   (read-json (open-input-string s)))
@@ -134,8 +134,8 @@
 
 ;; ---- secure-storage slice (issue #2): keyring custody + artifact scans ----
 
-(require "platform.rkt"
-         "secure-store.rkt")
+(require "../platform.rkt"
+         "../secure-store.rkt")
 
 (test-case "migration moves plaintext key to keyring; scan green, red direction proven"
   (define tmp (make-temporary-file "hd-sec1-~a" 'directory))

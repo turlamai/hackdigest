@@ -8,9 +8,9 @@
          racket/port
          racket/string
          rackunit
-         "data-files.rkt"
-         "db.rkt"
-         "migrate.rkt")
+         "../data-files.rkt"
+         "../db.rkt"
+         "../migrate.rkt")
 
 (define conn (open-database #f))
 

@@ -5,7 +5,7 @@
 
 (require racket/string
          rackunit
-         "translate.rkt")
+         "../translate.rkt")
 
 (test-case "lang-name"
   (check-equal? (lang-name "zh") "Simplified Chinese (简体中文)")

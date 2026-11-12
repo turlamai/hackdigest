@@ -16,7 +16,7 @@
          racket/string
          racket/system
          rackunit
-         "update.rkt")
+         "../update.rkt")
 
 ;; ---- pure helpers ----
 

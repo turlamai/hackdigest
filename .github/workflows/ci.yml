@@ -61,7 +61,7 @@ jobs:
         run: raco pkg install --auto --no-docs --skip-installed crypto
 
       - name: Backend tests
-        run: raco test backend/
+        run: raco test backend/tests/
 
       - name: Application schema compatibility
         run: raco glaze schema check --json

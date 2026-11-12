@@ -5,7 +5,7 @@
 ;; app startup via the UpdateBanner.
 
 (require rackunit
-         "update-check.rkt")
+         "../update-check.rkt")
 
 (test-case "strip-v"
   (check-equal? (strip-v "v0.5.1") "0.5.1")

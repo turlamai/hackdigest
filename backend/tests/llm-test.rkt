@@ -11,7 +11,7 @@
          racket/string
          racket/tcp
          rackunit
-         "llm.rkt")
+         "../llm.rkt")
 
 (define cfg (llm-config "http://127.0.0.1:0/v1" "sk-test" "test-model"))
 

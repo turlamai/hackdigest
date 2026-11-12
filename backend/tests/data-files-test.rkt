@@ -13,8 +13,8 @@
          racket/port
          racket/string
          rackunit
-         "data-files.rkt"
-         "settings-rpc.rkt")
+         "../data-files.rkt"
+         "../settings-rpc.rkt")
 
 (define bom (bytes #xEF #xBB #xBF))
 

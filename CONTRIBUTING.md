@@ -40,7 +40,7 @@ agree your contribution is licensed under AGPL-3.0.
 ## Before you push
 
 ```bash
-raco test backend/                                  # backend contract tests
+raco test backend/tests/                            # backend contract tests
 raco glaze schema check --json                      # application schema
 pnpm test                                           # frontend unit tests
 pnpm check                                          # type-check
