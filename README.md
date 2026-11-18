@@ -66,9 +66,9 @@ HN veterans get their muscle memory back: **j/k** move the selection,
 3. **Daily digest** — this morning's front page as a two-minute read in your
    language, before you decide what's worth opening.
 
-## Free / hosted plan
+## Current development scope
 
-All client features remain free with your own model key; your provider charges and limits apply. Hosted translation/digests are a planned capped subscription, not on sale. No lifetime hosting, device trials, mobile or sync entitlement is included in the launch design. See [PRICING.md](PRICING.md) for target prices, exact account quotas, length limits and cost gates. The hosted config surface in the app (device trials, desktop activation) was removed while hosted is not on sale; legacy hosted settings remap to a working custom endpoint. BYOK keys now default to the OS keyring (Keychain / Credential Manager / Secret Service) with an explicit opt-out; mobile is not a prerequisite.
+All client features use your own model provider key. Provider usage charges and rate limits apply. The product is focused on reliable native transport, private key storage, caching and recovery; no commercial hosted subscription, trial or desktop activation is in development. Legacy hosted settings can map to a custom endpoint without enabling paid access.
 
 ## Tech stack
 
