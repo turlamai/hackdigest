@@ -21,7 +21,10 @@ grep -Fq 'https://github.com/turlamai/hackdigest/releases/download' "$signer"
 # update-check.rkt (startup detection) must also name only the canonical
 # origin: the legacy-org endpoints 404 and silently disable the banner.
 grep -Fq '/repos/turlamai/hackdigest/releases/latest' "$update_check"
-if grep -Fq 'turinglambdaai/hackdigest' "$backend" "$update_check" "$signer"; then
-  echo 'legacy update origin remains' >&2; exit 1
+# Include shipped desktop source so the user-facing GitHub button cannot
+# regress to the renamed owner while backend-only signing tests still pass.
+if grep -R -F -q 'turinglambdaai/hackdigest' \
+     "$backend" "$update_check" "$signer" "$ROOT/apps/desktop/src"; then
+  echo 'legacy owner origin remains in backend or shipped frontend' >&2; exit 1
 fi
 echo 'release-signing: mandatory Ed25519 feed and canonical update URLs verified'
