@@ -1,7 +1,5 @@
 # HackDigest
 
-**产品：**[产品主页](https://hackdigest.jrtx.site/) · **支持：**[问题与反馈](https://github.com/turlamai/hackdigest/issues) · [当前交付策略](https://github.com/turlamai/turlamai.github.io/blob/master/PORTFOLIO.zh-CN.md)
-
 把 Hacker News 读成中文 —— 为「看得懂英文、但读不痛快」的开发者做的 HN 阅读器。
 
 [![CI](https://github.com/turlamai/hackdigest/actions/workflows/ci.yml/badge.svg)](https://github.com/turlamai/hackdigest/actions/workflows/ci.yml) [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
