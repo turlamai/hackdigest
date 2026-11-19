@@ -1,7 +1,5 @@
 # HackDigest
 
-**Product:** [Website](https://hackdigest.jrtx.site/) · **Support:** [Issues & feedback](https://github.com/turlamai/hackdigest/issues) · [Development policy](https://github.com/turlamai/turlamai.github.io/blob/master/PORTFOLIO.md)
-
 Hacker News, in your language — a reader built for people who don't read
 English comfortably enough to enjoy HN raw.
 
