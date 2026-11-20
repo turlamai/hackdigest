@@ -53,7 +53,7 @@ jobs:
       # Temporary immutable PR #85 head for cross-repository native integration.
       # Replace with the verified Glaze merge SHA before merging this PR.
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#v0.19.0
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#89d1a94ce95afee7ab45f3c74dabd63bedce184c
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -111,7 +111,7 @@ jobs:
       - name: Install pinned Glaze and crypto
         shell: bash
         run: |
-          raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#v0.19.0
+          raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#89d1a94ce95afee7ab45f3c74dabd63bedce184c
           raco pkg install --auto --no-docs --skip-installed crypto
       - name: Install WebKitGTK for Linux
         if: runner.os == 'Linux'
