@@ -100,7 +100,7 @@ jobs:
           distribution: full
 
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#v0.19.0
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#89d1a94ce95afee7ab45f3c74dabd63bedce184c
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -384,7 +384,7 @@ jobs:
           distribution: full
 
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#v0.19.0
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#89d1a94ce95afee7ab45f3c74dabd63bedce184c
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -875,7 +875,7 @@ jobs:
           distribution: full
 
       - name: Install glaze
-        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#v0.19.0
+        run: raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#89d1a94ce95afee7ab45f3c74dabd63bedce184c
 
       # the updater verifies manifests through the crypto package (libcrypto
       # FFI bundled with the Racket distribution)
@@ -891,9 +891,14 @@ jobs:
       - name: Package app and MSI installer
         shell: bash
         run: |
+          # Use the established HackDigest artwork for Windows identity
+          # instead of a generic executable / Installed Apps icon.
+          python -m pip install --disable-pip-version-check Pillow==11.3.0
+          python -c "from PIL import Image; Image.open('assets/icon-512.png').convert('RGBA').save('assets/installer.ico', format='ICO', sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
           raco glaze build \
             --entry backend/main.rkt \
             --name HackDigest \
+            --icon assets/installer.ico \
             --version "$VERSION" \
             --publisher 'Turing Lambda' \
             --identifier 'TuringLambda.HackDigest' \
@@ -1161,7 +1166,7 @@ jobs:
 
       - name: Install glaze and crypto
         run: |
-          raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#v0.19.0 crypto
+          raco pkg install --auto --no-docs --skip-installed git+https://github.com/turlamai/glaze.git#89d1a94ce95afee7ab45f3c74dabd63bedce184c crypto
 
       - uses: actions/download-artifact@v4
         with:
