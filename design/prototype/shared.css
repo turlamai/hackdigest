@@ -1,11 +1,14 @@
 /* ==== HackDigest 原型共享壳层 — tokens 与组件，见 design/DESIGN.md ==== */
 :root {
+  color-scheme: light;
   --bg: #faf9f7; --surface: #ffffff; --raised: #f3f1ec; --line: #e7e3da;
-  --ink: #1f1d1a; --mute: #8a8578; --accent: #d9531e; --accent-soft: #faeee5;
+  --ink: #1f1d1a; --mute: #726d62; --accent: #d9531e; --accent-soft: #faeee5;
+  --font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 .dark {
+  color-scheme: dark;
   --bg: #171512; --surface: #201d19; --raised: #282420; --line: #322e27;
-  --ink: #e8e4dc; --mute: #90897a; --accent: #ff8a50; --accent-soft: #33241a;
+  --ink: #e8e4dc; --mute: #938c7d; --accent: #ff8a50; --accent-soft: #33241a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -32,8 +35,14 @@ body {
 .titlebar .t { font-size: 13px; font-weight: 600; color: var(--mute); letter-spacing: .2px; }
 .titlebar .sp { flex: 1; }
 .iconbtn {
-  width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--line); background: var(--raised);
-  color: var(--mute); display: grid; place-items: center; cursor: pointer; font-size: 13px;
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid transparent; background: transparent;
+  color: var(--mute); display: grid; place-items: center; cursor: pointer; font-size: 13px; transition: background .12s ease;
+}
+.iconbtn:hover { background: var(--raised); }
+/* Functional line icon: one size and stroke for every inline SVG that carries the class. */
+.od-icon {
+  width: var(--od-icon-size, 16px); height: var(--od-icon-size, 16px); flex: none; vertical-align: middle;
+  fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
 }
 .body { flex: 1; display: flex; min-height: 0; }
 .sidebar {
@@ -46,7 +55,7 @@ body {
   display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700;
 }
 .brand .name { font-size: 14px; font-weight: 700; letter-spacing: .1px; }
-.sect { font-size: 11px; font-weight: 600; letter-spacing: .8px; color: var(--mute); padding: 12px 8px 6px; }
+.sect { font-size: 12px; font-weight: 600; letter-spacing: .8px; color: var(--mute); padding: 12px 8px 6px; }
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .item {
   display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px;
@@ -87,3 +96,269 @@ kbd {
   font-family: inherit; font-size: 12px; color: var(--mute);
   background: var(--raised); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px;
 }
+
+/* Family baseline 2026-11-20-minimal-family: visible keyboard focus and reduced motion. */
+:where(a[href], button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==== App shell for index.html and shortcuts.html — RECONSTRUCTED 2026-11-26 ====
+   The shell stylesheet was never committed, so app.js has rendered unstyled since f5674f0.
+   The original may exist in an OpenDesign project on another device.
+   This block only reuses the tokens, spacing and component vocabulary of the static pages
+   above so that .app, .modal and .toast are readable in both themes (structure per DESIGN.md).
+   Revert it as a unit if the original stylesheet is recovered. */
+[hidden] { display: none !important; }
+dialog:not([open]) { display: none !important; }
+body:has(> .app) { display: block; padding: 0; background: var(--bg); }
+.app { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100vh; }
+.app button, .app input, .app select, .modal button { font-family: inherit; }
+/* sidebar: the static pages' .sidebar, .brand, .nav and .item */
+.app .sidebar { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; }
+.app .brand { font-size: 14px; font-weight: 700; letter-spacing: .1px; }
+.app .brand .mark { text-transform: uppercase; }
+.app .nav-label { font-size: 12px; font-weight: 600; color: var(--mute); padding: 12px 8px 6px; }
+.app .nav button {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--ink); font-size: 14px; text-align: left; cursor: pointer; transition: background .12s ease;
+}
+.app .nav button:hover { background: var(--raised); }
+.app .nav button.active { background: var(--raised); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); }
+.app .nav .od-icon { color: var(--mute); }
+.app .nav button.active .od-icon { color: var(--accent); }
+.app .nav kbd { margin-left: auto; }
+.app .sidebar-foot { margin-top: auto; display: grid; gap: 4px; padding: 10px 8px 2px; border-top: 1px solid var(--line); }
+.app .connection { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--mute); }
+.app .connection .dot { flex: none; background: var(--mute); }
+.app .sidebar-foot .actions { display: flex; gap: 4px; margin-left: -6px; }
+/* topbar: the static pages' .titlebar height, .search field and .btn */
+.app .topbar {
+  position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 7px 20px;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.app .breadcrumbs { font-size: 13px; color: var(--mute); white-space: nowrap; }
+.app .breadcrumbs #crumb { color: var(--ink); font-weight: 600; }
+.app .search {
+  display: flex; align-items: center; gap: 8px; flex: 0 1 240px; min-width: 0; height: 30px; margin-left: auto; padding: 0 10px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 6px; color: var(--mute); font-size: 13px;
+}
+.app .search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-size: 13px; }
+.app .search input::placeholder { color: var(--mute); }
+.app .search:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app .search input:focus-visible { outline: none; }
+.app .mobile-menu { display: none; }
+.app .page { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1200px; margin: 0 auto; padding: 4px 20px 24px; }
+/* shared pieces: .head/.date/.eyebrow, .btn, the static pages' underlined accent actions */
+.app .pagehead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 10px 0 12px; }
+.app .eyebrow { font-size: 12px; font-weight: 600; color: var(--mute); }
+.app .pagehead h1 { font-size: 17px; font-weight: 700; line-height: 1.4; }
+.app .helper { font-size: 13px; line-height: 1.5; color: var(--mute); }
+.app .pagehead .helper { margin-top: 2px; }
+.app .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex: none; }
+.app .btn { cursor: pointer; text-decoration: none; }
+.app .btn:hover:not(:disabled) { background: var(--raised); }
+.app .btn.primary:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); }
+.app .btn:disabled { cursor: progress; opacity: .6; }
+.app .textbtn, .app .status, .app .meta button {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 2px; border: 0; background: none;
+  font-size: 13px; cursor: pointer;
+}
+.app .meta button { color: var(--mute); font-weight: 500; } /* counts stay quiet like the static pages' .meta */
+.app .textbtn, .app .status { color: var(--accent); font-weight: 600; }
+.app .textbtn:hover, .app .status:hover, .app .meta button:hover { text-decoration: underline; text-underline-offset: 2px; }
+.app .meta button:hover { color: var(--ink); }
+/* story list: .banner, .row, .rank, .title, .meta and .seg of feed.html and settings.html */
+.app .daily-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; padding: 8px 14px;
+  border-radius: 8px; background: var(--accent-soft);
+}
+.app .daily-banner h2 { font-size: 14px; font-weight: 600; line-height: 1.5; }
+.app .feed-layout { display: grid; grid-template-columns: minmax(0, 1fr) 248px; gap: 20px; align-items: start; }
+.app .listhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; font-size: 13px; color: var(--mute); }
+.app .seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 6px; background: var(--raised); }
+.app .seg button {
+  min-height: 28px; padding: 4px 12px; border: 0; border-radius: 4px; background: transparent; color: var(--mute); font-size: 13px; cursor: pointer;
+}
+.app .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(31,29,26,.12); }
+.app .story-row {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) 28px; gap: 12px; align-items: start;
+  padding: 12px; border-radius: 8px; border-bottom: 1px solid var(--line); transition: background .12s ease;
+}
+.app .story-row:last-child { border-bottom: none; }
+.app .story-row:hover { background: color-mix(in srgb, var(--raised) 55%, transparent); }
+.app .story-row.selected { background: var(--raised); box-shadow: inset 2px 0 0 var(--accent); }
+.app .rank { font-size: 13px; font-weight: 600; line-height: 21px; color: var(--mute); text-align: right; font-variant-numeric: tabular-nums; }
+.app .story-row.selected .rank { color: var(--accent); }
+.app .story-title {
+  display: block; max-width: 100%; padding: 0; border: 0; background: none; color: var(--ink);
+  font-size: 15px; font-weight: 600; line-height: 1.4; text-align: left; overflow-wrap: anywhere; cursor: pointer;
+}
+.app .story-title:hover { text-decoration: underline; text-underline-offset: 2px; }
+.app .original { font-size: 13px; line-height: 1.5; color: var(--mute); margin-top: 2px; overflow-wrap: anywhere; }
+.app .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; margin-top: 2px; font-size: 13px; color: var(--mute); }
+.app .bookmark {
+  display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--mute); cursor: pointer;
+}
+.app .bookmark:hover { background: var(--surface); color: var(--ink); }
+.app .bookmark[aria-pressed="true"] { color: var(--accent); }
+.app .bookmark[aria-pressed="true"] .od-icon { fill: currentColor; }
+.app .empty { padding: 32px 16px; text-align: center; }
+.app .empty h2 { font-size: 15px; font-weight: 600; }
+.app .empty p { font-size: 13px; line-height: 1.5; color: var(--mute); margin: 4px 0 12px; }
+/* reading aside: the static pages' bordered surface box (.dcard, .tldr) */
+.app .reading-aside { display: grid; gap: 12px; }
+.app .aside-section { padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.app .aside-section h2 { font-size: 14px; font-weight: 700; line-height: 1.45; margin: 4px 0 6px; }
+.app .aside-section p { font-size: 13px; line-height: 1.5; color: var(--mute); }
+.app .feature-link {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; padding: 6px 8px; margin: 0 -8px;
+  border: 0; border-radius: 6px; background: transparent; color: var(--ink); font-size: 14px; text-align: left; cursor: pointer;
+}
+.app .feature-link:hover { background: var(--raised); }
+.app .feature-link .od-icon { color: var(--mute); }
+.app .aside-section .textbtn { padding-left: 0; }
+.app .big { font-size: 24px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.app .bottomline {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; margin-top: 20px; padding-top: 8px;
+  border-top: 1px solid var(--line); font-size: 12px; line-height: 1.5; color: var(--mute);
+}
+.app .keyhints { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.app .page > .bottomline { margin-top: auto; }
+/* story detail: .tzh/.ten/.meta2/.tldr/.chead/.cmt of story.html */
+.app .reading { max-width: 800px; }
+.app .textbtn.back { padding-left: 0; margin-bottom: 8px; }
+.app .reading > h1 { font-size: 17px; font-weight: 700; line-height: 1.45; margin-top: 2px; overflow-wrap: anywhere; }
+.app .reading .original { font-size: 14px; font-weight: 500; }
+.app .reading .meta { margin-top: 6px; }
+.app .summary-box { margin-top: 16px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.app .summary-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.app .summary-head h2 { font-size: 14px; font-weight: 700; }
+.app .summary-box ul { margin-top: 10px; list-style: none; display: grid; gap: 8px; }
+.app .summary-box li { position: relative; padding-left: 18px; font-size: 14px; line-height: 1.65; }
+.app .summary-box li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .7; }
+.app .summary-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; margin-top: 10px; }
+.app .section-head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; margin: 20px 0 4px; padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.app .section-head h2 { font-size: 14px; font-weight: 700; }
+.app .od-field { display: grid; gap: 2px; }
+.app .comment { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.app .comment:last-child { border-bottom: none; }
+.app .comment.reply { display: grid; grid-template-columns: 2px minmax(0, 1fr); gap: 12px; margin-left: 26px; }
+.app .comment.reply::before { content: ""; grid-row: 1 / span 4; border-radius: 2px; background: var(--line); }
+.app .comment-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; color: var(--mute); }
+.app .comment-head strong { color: var(--ink); font-weight: 600; }
+.app .comment-head span { font-size: 12px; font-weight: 600; padding: 1px 7px; border-radius: 99px; background: var(--raised); color: var(--mute); }
+.app .comment > p { font-size: 14px; line-height: 1.7; margin-top: 5px; overflow-wrap: anywhere; }
+.app .comment details { margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--line); }
+.app .comment summary { display: flex; align-items: center; min-height: 28px; width: fit-content; font-size: 13px; color: var(--mute); cursor: pointer; }
+.app .comment details p { font-size: 13px; line-height: 1.6; color: var(--mute); }
+.app .comment-actions { display: flex; gap: 14px; margin-top: 2px; }
+/* digest: .dgroup/.dcard of digest.html; the topic list reuses the sidebar item */
+.app .notice { margin-bottom: 10px; padding: 8px 14px; border-radius: 8px; background: var(--raised); font-size: 13px; line-height: 1.5; }
+.app .digest-layout { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 20px; align-items: start; }
+.app .toc { position: sticky; top: 56px; display: flex; flex-direction: column; gap: 2px; }
+.app .toc button {
+  display: block; min-height: 28px; padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--ink);
+  font-size: 13px; font-weight: 500; text-align: left; cursor: pointer;
+}
+.app .toc button:hover { background: var(--raised); }
+.app .toc button[aria-pressed="true"] { background: var(--raised); box-shadow: inset 2px 0 0 var(--accent); }
+.app .digest-group { margin-top: 12px; }
+.app .digest-group h2 { font-size: 12px; font-weight: 700; color: var(--mute); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.app .digest-card { padding: 14px 16px; margin-top: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.app .digest-card .no { font-size: 12px; font-weight: 700; color: var(--mute); font-variant-numeric: tabular-nums; }
+.app .digest-card h3 { font-size: 15px; font-weight: 600; line-height: 1.45; margin-top: 4px; }
+.app .digest-card p { font-size: 14px; line-height: 1.65; color: var(--mute); margin-top: 5px; }
+.app .digest-card .meta { margin-top: 4px; }
+/* settings: .sgrp/.frow/.seg/.switch of settings.html in a bordered surface box */
+.app .settings { max-width: 620px; }
+.app .settings-group { margin-top: 22px; }
+.app .settings-group h2 { font-size: 12px; font-weight: 700; color: var(--mute); padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.app .settings-box { margin-top: 10px; padding: 0 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.app .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.app .setting-row:last-child { border-bottom: none; }
+.app .setting-row .label, .app .setting-row label, .app .field label { display: block; font-size: 14px; font-weight: 500; line-height: 1.4; }
+.app .field { padding: 11px 0; border-bottom: 1px solid var(--line); }
+.app .field .actions { margin-top: 6px; }
+.app .field input {
+  flex: 1; min-width: 0; height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--ink); font-size: 13px;
+}
+.app select {
+  flex: none; min-width: 140px; height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--bg); color: var(--ink); font-size: 13px;
+}
+.app .switch { position: relative; flex: none; width: 36px; height: 22px; padding: 0; border: 0; border-radius: 99px; background: var(--line); cursor: pointer; transition: background .12s ease; }
+.app .switch::before { content: ""; position: absolute; inset: -5px -8px; } /* extends the hit area to 52x32 without changing the drawn size */
+.app .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.18); transition: left .12s ease; }
+.app .switch[aria-checked="true"] { background: var(--accent); }
+.app .switch[aria-checked="true"]::after { left: 16px; }
+.app .error { font-size: 13px; line-height: 1.5; font-weight: 600; }
+.app .savebar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; padding: 10px 14px;
+  border-radius: 8px; background: var(--raised);
+}
+/* shortcuts dialog: the panel that shortcuts.html had before f5674f0 */
+.shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); column-gap: 32px; }
+.app .page .shortcut-grid { max-width: 760px; margin-bottom: 20px; }
+.shortcut-group h3 { font-size: 12px; font-weight: 700; color: var(--mute); margin: 12px 0 4px; }
+.shortcut-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 0; font-size: 13px; line-height: 1.5; }
+.shortcut-row .keys { display: flex; flex: none; gap: 4px; }
+.modal {
+  width: min(660px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; margin: auto; padding: 20px 24px 22px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+  box-shadow: 0 2px 6px rgba(31,29,26,.14), 0 24px 64px rgba(31,29,26,.28);
+}
+.modal::backdrop { background: rgba(31,29,26,.45); }
+.dark .modal::backdrop { background: rgba(0,0,0,.52); }
+.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.modal-head .iconbtn { margin-right: -6px; }
+.modal h2 { font-size: 15px; font-weight: 700; line-height: 1.45; }
+.modal p { font-size: 13px; line-height: 1.5; }
+.modal .helper { color: var(--mute); }
+.modal > .actions { display: flex; justify-content: flex-end; }
+.toast {
+  position: fixed; left: 50%; bottom: 24px; z-index: 10; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 8px 14px;
+  border-radius: 8px; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1.5; box-shadow: 0 8px 24px rgba(31,29,26,.24);
+}
+/* breakpoints per DESIGN.md: wide keeps the reading aside, medium is sidebar + main, narrow folds the nav into a menu */
+@media (max-width: 1080px) {
+  .app .feed-layout { grid-template-columns: minmax(0, 1fr); }
+  .app .reading-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .app .sidebar {
+    position: fixed; inset: 0 auto 0 0; z-index: 5; width: 264px; max-width: calc(100vw - 56px);
+    transform: translateX(-100%); transition: transform .16s ease; box-shadow: 0 12px 32px rgba(31,29,26,.18);
+  }
+  .app.menu-open .sidebar { transform: none; }
+  .app.menu-open::after { content: ""; position: fixed; inset: 0; z-index: 4; background: rgba(31,29,26,.45); }
+  .dark .app.menu-open::after { background: rgba(0,0,0,.52); }
+  .app .mobile-menu { display: grid; }
+  .app .page { padding: 4px 16px 24px; }
+  .app .digest-layout { grid-template-columns: minmax(0, 1fr); }
+  .app .toc { position: static; flex-direction: row; flex-wrap: wrap; }
+  .app .reading-aside { grid-template-columns: minmax(0, 1fr); }
+  .app .pagehead, .app .setting-row, .app .savebar { flex-wrap: wrap; }
+  /* touch targets: 44px for the primary controls on narrow screens */
+  .app .btn { height: auto; }
+  .app .btn, .app .iconbtn, .app .nav button, .app .seg button, .app .textbtn, .app .status, .app .meta button, .app .bookmark, .app .toc button { min-height: 44px; }
+  .app .iconbtn, .app .bookmark { min-width: 44px; }
+  .app .story-row { grid-template-columns: 24px minmax(0, 1fr) 44px; }
+  .app .switch::before { inset: -11px -4px; }
+}
+@media (max-width: 600px) {
+  .app .breadcrumbs { display: none; }
+  .app .search { flex: 1 1 auto; margin-left: 0; }
+}
+/* ==== /app shell (reconstructed) ==== */
