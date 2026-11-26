@@ -2,13 +2,13 @@
 :root {
   color-scheme: light;
   --bg: #faf9f7; --surface: #ffffff; --raised: #f3f1ec; --line: #e7e3da;
-  --ink: #1f1d1a; --mute: #726d62; --accent: #d9531e; --accent-soft: #faeee5;
+  --ink: #1f1d1a; --mute: #726d62; --accent: #b84218; --accent-contrast: #ffffff; --accent-soft: #faeee5;
   --font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 .dark {
   color-scheme: dark;
   --bg: #171512; --surface: #201d19; --raised: #282420; --line: #322e27;
-  --ink: #e8e4dc; --mute: #938c7d; --accent: #ff8a50; --accent-soft: #33241a;
+  --ink: #e8e4dc; --mute: #958e80; --accent: #ff8a50; --accent-contrast: #171512; --accent-soft: #33241a;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -52,7 +52,7 @@ body {
 .brand { display: flex; align-items: center; gap: 9px; padding: 4px 8px 14px; }
 .brand .mark {
   width: 22px; height: 22px; border-radius: 6px; background: var(--accent);
-  display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700;
+  display: grid; place-items: center; color: var(--accent-contrast); font-size: 12px; font-weight: 700;
 }
 .brand .name { font-size: 14px; font-weight: 700; letter-spacing: .1px; }
 .sect { font-size: 12px; font-weight: 600; letter-spacing: .8px; color: var(--mute); padding: 12px 8px 6px; }
@@ -297,11 +297,11 @@ body:has(> .app) { display: block; padding: 0; background: var(--bg); }
   flex: none; min-width: 140px; height: 30px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px;
   background: var(--bg); color: var(--ink); font-size: 13px;
 }
-.app .switch { position: relative; flex: none; width: 36px; height: 22px; padding: 0; border: 0; border-radius: 99px; background: var(--line); cursor: pointer; transition: background .12s ease; }
+.app .switch { position: relative; flex: none; width: 36px; height: 22px; padding: 0; border: 0; border-radius: 99px; background: var(--mute); cursor: pointer; transition: background .12s ease; } /* off track = --mute so the control edge stays >= 3:1 against the surface */
 .app .switch::before { content: ""; position: absolute; inset: -5px -8px; } /* extends the hit area to 52x32 without changing the drawn size */
-.app .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.18); transition: left .12s ease; }
+.app .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-contrast); box-shadow: 0 1px 2px rgba(0,0,0,.18); transition: left .12s ease; }
 .app .switch[aria-checked="true"] { background: var(--accent); }
-.app .switch[aria-checked="true"]::after { left: 16px; }
+.app .switch[aria-checked="true"]::after { left: 16px; box-shadow: none; }
 .app .error { font-size: 13px; line-height: 1.5; font-weight: 600; }
 .app .savebar {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; padding: 10px 14px;
