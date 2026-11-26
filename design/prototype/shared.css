@@ -3,7 +3,7 @@
   color-scheme: light;
   --bg: #faf9f7; --surface: #ffffff; --raised: #f3f1ec; --line: #e7e3da;
   --ink: #1f1d1a; --mute: #726d62; --accent: #b84218; --accent-contrast: #ffffff; --accent-soft: #faeee5;
-  --font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
 }
 .dark {
   color-scheme: dark;
@@ -14,7 +14,7 @@
 body {
   min-height: 100vh; display: grid; place-items: center; padding: 40px 24px;
   background: radial-gradient(1200px 800px at 20% 0%, #efece6, #e4e0d8 60%, #d9d4ca);
-  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   -webkit-font-smoothing: antialiased; color: var(--ink);
 }
 .window {
@@ -232,7 +232,7 @@ body:has(> .app) { display: block; padding: 0; background: var(--bg); }
 .app .keyhints { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .app .page > .bottomline { margin-top: auto; }
 /* story detail: .tzh/.ten/.meta2/.tldr/.chead/.cmt of story.html */
-.app .reading { max-width: 800px; }
+.app .reading { max-width: 38em; }
 .app .textbtn.back { padding-left: 0; margin-bottom: 8px; }
 .app .reading > h1 { font-size: 17px; font-weight: 700; line-height: 1.45; margin-top: 2px; overflow-wrap: anywhere; }
 .app .reading .original { font-size: 14px; font-weight: 500; }
@@ -362,3 +362,11 @@ body:has(> .app) { display: block; padding: 0; background: var(--bg); }
   .app .search { flex: 1 1 auto; margin-left: 0; }
 }
 /* ==== /app shell (reconstructed) ==== */
+
+/* ---- temperament profile pass ---- */
+/* typography baseline (family standard 2026-11-26-temperament-profiles): CJK/Latin spacing and kinsoku come from the rendering layer,
+   never from typed spaces (§4, §10). Values stay in the token block above. */
+body { text-autospace: normal; line-break: strict; }
+::selection { background: var(--accent-soft); color: var(--ink); }
+/* Paired neutral scrollbar for both themes; thin and non-distracting. */
+html { scrollbar-color: var(--line) transparent; }
