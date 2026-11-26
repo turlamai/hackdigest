@@ -26,7 +26,7 @@ Hacker News 大概是互联网上最好的技术首页 —— 但对数以百万
 
 每个二进制产物都附带同名的 `.sha256` 校验文件，并汇总为 `SHA256SUMS`。
 
-> macOS 构建为 ad-hoc 签名、未公证：首次启动请右键 → 打开。Windows MSI 未签名，首次安装时 SmartScreen 可能告警 —— 选择「仍要运行」。
+> 当前正式 macOS 发布流程强制要求 Developer ID 签名及公证。旧版本可能仍为临时签名，请以对应发布说明中的验证状态为准。Windows MSI 仍未签名，可能触发 SmartScreen 告警。运行前请核实官方来源与校验和，不要关闭系统级安全保护。
 
 翻译与 Digest 需要一个大模型 API Key —— 在设置里填一个（GLM、DeepSeek、通义、Kimi、OpenAI，或本地 Ollama，均为 OpenAI 兼容接口）。
 

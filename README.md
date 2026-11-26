@@ -33,9 +33,7 @@ three platforms:
 
 Every release includes one checked `SHA256SUMS` covering all versioned binaries and the Ed25519-signed `update-manifest.json`. Individual checksum sidecars remain CI artifacts; duplicate versionless installers are not published.
 
-> macOS builds are ad-hoc signed and not notarized: on first launch,
-> right-click → Open. The Windows MSI is unsigned, so SmartScreen may show
-> a warning on first install — choose More info → Run anyway.
+> The current release workflow requires Developer ID signing and notarization for tagged macOS releases. Older artifacts may be ad-hoc signed; consult the release's verification status. Windows MSI remains unsigned and may trigger SmartScreen. Verify the official download and checksum before running it; do not disable system-wide protections.
 
 Translation and digests need an LLM API key — set one in Settings (GLM,
 DeepSeek, Qwen, Kimi, OpenAI, or a local Ollama; all OpenAI-compatible).
