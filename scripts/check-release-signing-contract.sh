@@ -8,7 +8,11 @@ update_check="$ROOT/backend/update-check.rkt"
 signer="$ROOT/scripts/make-update-manifest.sh"
 require() { grep -Fq -- "$1" "$release" || { echo "missing release guard: $1" >&2; exit 1; }; }
 require 'Require Ed25519 update signing secret before packaging'
-require "if: github.event_name == 'push'"
+require "if: startsWith(github.ref, 'refs/tags/v')"
+# Check both the preflight and publish guards, not just a comment.
+test "$(grep -Fc "if: startsWith(github.ref, 'refs/tags/v')" "$release")" -ge 3
+require 'Require Apple credentials for tagged releases'
+require 'bash scripts/check-release-version.sh "$GITHUB_REF_NAME"'
 require 'Sign and require trusted update feed (update-manifest.json)'
 require 'scripts/make-update-manifest.sh "$GITHUB_REF_NAME" dist "$KEY_PEM"'
 require 'test -s dist/update-manifest.json'
