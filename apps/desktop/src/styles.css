@@ -14,6 +14,7 @@
 }
 
 :root {
+  color-scheme: light;
   --bg: #faf9f7;
   --surface: #ffffff;
   --raised: #f3f1ec;
@@ -25,6 +26,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --bg: #171512;
   --surface: #201d19;
   --raised: #282420;
